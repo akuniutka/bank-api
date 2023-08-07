@@ -31,7 +31,6 @@ class AccountServiceTest {
     private static final String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
     private static final String WRONG_MINOR_UNITS = "wrong minor units";
     private static final String INSUFFICIENT_BALANCE = "insufficient balance";
-    private static final String USER_ALREADY_EXISTS = "user already exists";
     private Account account;
     @Mock
     private AccountRepository repository;
@@ -41,7 +40,7 @@ class AccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        account = new Account(EXISTING_USER_ID);
+        account = new Account();
         List<Account> accounts = new ArrayList<>();
         accounts.add(account);
         storedAccounts.clear();
@@ -64,22 +63,10 @@ class AccountServiceTest {
     }
 
     @Test
-    void testAddNewUser$WhenNonExistingUserId() {
-        assertDoesNotThrow(() -> service.addNewUser(NON_EXISTING_USER_ID));
+    void testAddNewUser() {
+        Long userId = service.addNewUser();
         assertEquals(1, storedAccounts.size());
-        assertEquals(NON_EXISTING_USER_ID, storedAccounts.get(0).getId());
-    }
-
-    @Test
-    void testAddNewUser$WhenExistingUserId() {
-        Exception exception = assertThrows(WrongUserIdException.class, () -> service.addNewUser(EXISTING_USER_ID));
-        assertEquals(USER_ALREADY_EXISTS, exception.getMessage());
-    }
-
-    @Test
-    void testAddNewUser$WhenNullUserId() {
-        Exception exception = assertThrows(WrongUserIdException.class, () -> service.addNewUser(null));
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        assertNull(userId);
     }
 
     @Test

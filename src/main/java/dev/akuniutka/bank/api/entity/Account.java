@@ -5,6 +5,8 @@ import dev.akuniutka.bank.api.exception.WrongAmountException;
 import dev.akuniutka.bank.api.exception.WrongUserIdException;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,16 +19,9 @@ public class Account {
     private final static String WRONG_MINOR_UNITS = "wrong minor units";
     private final static String INSUFFICIENT_BALANCE = "insufficient balance";
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-    private BigDecimal balance;
-
-    public Account(Long userId) {
-        this();
-        if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
-        }
-        this.id = userId;
-    }
+    private BigDecimal balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
     public Long getId() {
         return id;
@@ -47,10 +42,6 @@ public class Account {
             throw new InsufficientFundsException(INSUFFICIENT_BALANCE);
         }
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
-    }
-
-    protected Account() {
-        balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
     }
 
     private void assertAmount(BigDecimal amount) {
