@@ -29,6 +29,7 @@ class AccountServiceTest {
     private static final String USER_DOES_NOT_EXIST = "user does not exist";
     private static final String AMOUNT_IS_NULL = "amount is null";
     private static final String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
+    private static final String WRONG_MINOR_UNITS = "wrong minor units";
     private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private static final String USER_ALREADY_EXISTS = "user already exists";
     private Account account;
@@ -83,7 +84,7 @@ class AccountServiceTest {
 
     @Test
     void testGetUserBalance$WhenExistingUser() {
-        BigDecimal expected = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         BigDecimal actual = service.getUserBalance(EXISTING_USER_ID);
         assertEquals(expected, actual);
     }
@@ -101,15 +102,40 @@ class AccountServiceTest {
     }
 
     @Test
-    void testIncreaseUserBalance$WhenExistingUserAndNotNullAmount() {
-        BigDecimal expected = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
-        service.increaseUserBalance(EXISTING_USER_ID, expected);
+    void testIncreaseUserBalance$WhenExistingUserAndPositiveAmount() {
+        BigDecimal amount = BigDecimal.TEN;
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        service.increaseUserBalance(EXISTING_USER_ID, amount);
         assertEquals(expected, account.getBalance());
     }
 
     @Test
+    void testIncreaseUserBalance$WhenExistingUserAndScaleGreaterThanTwoWithZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        service.increaseUserBalance(EXISTING_USER_ID, amount);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testIncreaseUserBalance$WhenExistingUserAndScaleGreaterThanTwoWithNonZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        Exception exception = assertThrows(WrongAmountException.class,
+                () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
+        );
+        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+    }
+
+    @Test
     void testIncreaseUserBalance$WhenExistingUserAndZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amount = BigDecimal.ZERO;
         Exception exception = assertThrows(WrongAmountException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
@@ -118,7 +144,7 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalance$WhenExistingUserAndNegativeAmount() {
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amount = BigDecimal.TEN.negate();
         Exception exception = assertThrows(WrongAmountException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
@@ -134,8 +160,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testIncreaseUserBalance$WhenNonExistingUserAndNotNullAmount() {
-        BigDecimal amount = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
+    void testIncreaseUserBalance$WhenNonExistingUser() {
+        BigDecimal amount = BigDecimal.TEN;
         Exception exception = assertThrows(WrongUserIdException.class,
                 () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
         );
@@ -143,34 +169,8 @@ class AccountServiceTest {
     }
 
     @Test
-    void testIncreaseUserBalance$WhenNonExistingUserAndZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalance$WhenNonExistingUserAndNegativeAmount() {
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalance$WhenNonExistingUserAndNullAmount() {
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, null)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalance$WhenNullUserIdAndNotNullAmount() {
-        BigDecimal amount = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
+    void testIncreaseUserBalance$WhenNullUserId() {
+        BigDecimal amount = BigDecimal.TEN;
         Exception exception = assertThrows(WrongUserIdException.class,
                 () -> service.increaseUserBalance(null, amount)
         );
@@ -178,44 +178,56 @@ class AccountServiceTest {
     }
 
     @Test
-    void testIncreaseUserBalance$WhenNullUserIdAndZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(null, amount)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalance$WhenMullUserIdrAndNegativeAmount() {
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(null, amount)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalance$WhenNullUserIdAndNullAmount() {
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.increaseUserBalance(null, null)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenExistingUserAndSufficientBalance() {
-        BigDecimal initialBalance = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal expected = BigDecimal.valueOf(444.44).setScale(2, RoundingMode.HALF_UP);
+    void testDecreaseUserBalance$WhenExistingUserAndAmountLessThatBalance() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
+        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
         account.increaseBalance(initialBalance);
         service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
         assertEquals(expected, account.getBalance());
     }
 
     @Test
-    void testDecreaseUserBalance$WhenExistingUserAndInsufficientBalance() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
+    void testDecreaseUserBalance$WhenExistingUserAndAmountEqualToBalance() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.TEN;
+        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        account.increaseBalance(initialBalance);
+        service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testDecreaseUserBalance$WhenExistingUserAndScaleGreaterThanTwoWithZeros() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
+        account.increaseBalance(initialBalance);
+        service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testDecreaseUserBalance$WhenExistingUserAndScaleGreaterThanTwoWithNonZeros() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        account.increaseBalance(initialBalance);
+        Exception exception = assertThrows(WrongAmountException.class,
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
+        );
+        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+    }
+
+    @Test
+    void testDecreaseUserBalance$WhenExistingUserAndAmountGreaterThanBalance() {
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
         Exception exception = assertThrows(InsufficientFundsException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
@@ -224,18 +236,20 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalance$WhenExistingUserAndZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amountWithdrawn = BigDecimal.ZERO;
         Exception exception = assertThrows(WrongAmountException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amount)
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
     }
 
     @Test
     void testDecreaseUserBalance$WhenExistingUserAndNegativeAmount() {
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE.negate();
+        account.increaseBalance(initialBalance);
         Exception exception = assertThrows(WrongAmountException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amount)
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
     }
@@ -249,8 +263,10 @@ class AccountServiceTest {
     }
 
     @Test
-    void testDecreaseUserBalance$WhenNonExistingUserAndNotNullAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
+    void testDecreaseUserBalance$WhenNonExistingUser() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
+        account.increaseBalance(initialBalance);
         Exception exception = assertThrows(WrongUserIdException.class,
                 () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
         );
@@ -258,62 +274,12 @@ class AccountServiceTest {
     }
 
     @Test
-    void testDecreaseUserBalance$WhenNonExistingUserAndZeroAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNonExistingUserAndNegativeAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(-555.55).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNonExistingUserAndNullAmount() {
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, null)
-        );
-        assertEquals(USER_DOES_NOT_EXIST, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNullUserIdAndNotNullAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
+    void testDecreaseUserBalance$WhenNullUserId() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
+        account.increaseBalance(initialBalance);
         Exception exception = assertThrows(WrongUserIdException.class,
                 () -> service.decreaseUserBalance(null, amountWithdrawn)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNullUserIdAndZeroAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(null, amountWithdrawn)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNullUserIdAndNegativeAmount() {
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(-555.55).setScale(2, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(null, amountWithdrawn)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalance$WhenNullUserIdAndNullAmount() {
-        Exception exception = assertThrows(WrongUserIdException.class,
-                () -> service.decreaseUserBalance(null, null)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
     }

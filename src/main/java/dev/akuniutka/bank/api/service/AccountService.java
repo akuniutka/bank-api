@@ -19,9 +19,7 @@ public class AccountService {
     }
 
     public void addNewUser(Long userId) {
-        if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
-        }
+        assertUserId(userId);
         if (repository.existsById(userId)) {
             throw new WrongUserIdException(USER_ALREADY_EXISTS);
         }
@@ -30,28 +28,28 @@ public class AccountService {
     }
 
     public BigDecimal getUserBalance(Long userId) {
-        if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
-        }
+        assertUserId(userId);
         Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
         return account.getBalance();
     }
 
     public void increaseUserBalance(Long userId, BigDecimal amount) {
-        if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
-        }
+        assertUserId(userId);
         Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
         account.increaseBalance(amount);
         repository.save(account);
     }
 
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
-        if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
-        }
+        assertUserId(userId);
         Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
         account.decreaseBalance(amount);
         repository.save(account);
+    }
+
+    private void assertUserId(Long userId) {
+        if (userId == null) {
+            throw new WrongUserIdException(USER_ID_IS_NULL);
+        }
     }
 }

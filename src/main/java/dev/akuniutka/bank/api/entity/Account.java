@@ -14,6 +14,7 @@ public class Account {
     private final static String USER_ID_IS_NULL = "user id is null";
     private final static String AMOUNT_IS_NULL = "amount is null";
     private final static String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
+    private final static String WRONG_MINOR_UNITS = "wrong minor units";
     private final static String INSUFFICIENT_BALANCE = "insufficient balance";
     @Id
     private Long id;
@@ -36,26 +37,29 @@ public class Account {
     }
 
     public void increaseBalance(BigDecimal amount) {
-        if (amount == null) {
-            throw new WrongAmountException(AMOUNT_IS_NULL);
-        } else if (amount.signum() != 1) {
-            throw new WrongAmountException(AMOUNT_IS_NOT_POSITIVE);
-        }
-        balance = balance.add(amount);
+        assertAmount(amount);
+        balance = balance.add(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
     public void decreaseBalance(BigDecimal amount) {
+        assertAmount(amount);
+        if (balance.compareTo(amount) < 0) {
+            throw new InsufficientFundsException(INSUFFICIENT_BALANCE);
+        }
+        balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
+    }
+
+    protected Account() {
+        balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void assertAmount(BigDecimal amount) {
         if (amount == null) {
             throw new WrongAmountException(AMOUNT_IS_NULL);
         } else if (amount.signum() != 1) {
             throw new WrongAmountException(AMOUNT_IS_NOT_POSITIVE);
-        } else if (balance.compareTo(amount) < 0) {
-            throw new InsufficientFundsException(INSUFFICIENT_BALANCE);
+        } else if (amount.setScale(2, RoundingMode.HALF_UP).compareTo(amount) != 0) {
+            throw new WrongAmountException(WRONG_MINOR_UNITS);
         }
-        balance = balance.subtract(amount);
-    }
-
-    protected Account() {
-        balance = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
     }
 }

@@ -14,6 +14,7 @@ class AccountTest {
     private static final Long USER_ID = 123456789L;
     private static final String AMOUNT_IS_NULL = "amount is null";
     private static final String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
+    private static final String WRONG_MINOR_UNITS = "wrong minor units";
     private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private static final String USER_ID_IS_NULL = "user id is null";
 
@@ -41,22 +42,47 @@ class AccountTest {
 
     @Test
     void testGetBalance() {
-        BigDecimal expected = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         Account account = new Account(USER_ID);
         assertEquals(expected, account.getBalance());
     }
 
     @Test
-    void testIncreaseBalance$WhenNotNullAmount() {
-        BigDecimal expected = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
+    void testIncreaseBalance$WhenPositiveAmount() {
+        BigDecimal amount = BigDecimal.TEN;
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
         Account account = new Account(USER_ID);
-        account.increaseBalance(expected);
+        account.increaseBalance(amount);
         assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testIncreaseBalance$WhenScaleGreaterThanTwoWithZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        Account account = new Account(USER_ID);
+        account.increaseBalance(amount);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testIncreaseBalance$WhenScaleGreaterThanTwoWithNonZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        Account account = new Account(USER_ID);
+        Exception exception = assertThrows(WrongAmountException.class, () -> account.increaseBalance(amount));
+        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
     }
 
     @Test
     void testIncreaseBalance$WhenZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amount = BigDecimal.ZERO;
         Account account = new Account(USER_ID);
         Exception exception = assertThrows(WrongAmountException.class, () -> account.increaseBalance(amount));
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
@@ -64,7 +90,7 @@ class AccountTest {
 
     @Test
     void testIncreaseBalance$WhenNegativeAmount() {
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amount = BigDecimal.TEN.negate();
         Account account = new Account(USER_ID);
         Exception exception = assertThrows(WrongAmountException.class, () -> account.increaseBalance(amount));
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
@@ -78,10 +104,10 @@ class AccountTest {
     }
 
     @Test
-    void testDecreaseBalance$WhenSufficientBalance() {
-        BigDecimal initialBalance = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal expected = BigDecimal.valueOf(444.44).setScale(2, RoundingMode.HALF_UP);
+    void testDecreaseBalance$WhenAmountLessThanBalance() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
+        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
         Account account = new Account(USER_ID);
         account.increaseBalance(initialBalance);
         account.decreaseBalance(amountWithdrawn);
@@ -89,28 +115,67 @@ class AccountTest {
     }
 
     @Test
-    void testDecreaseBalance$WhenInsufficientBalance() {
+    void testDecreaseBalance$WhenAmountEqualToBalance() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.TEN;
+        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         Account account = new Account(USER_ID);
-        BigDecimal amountWithdrawn = BigDecimal.valueOf(555.55).setScale(2, RoundingMode.HALF_UP);
+        account.increaseBalance(initialBalance);
+        account.decreaseBalance(amountWithdrawn);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testDecreaseBalance$WhenScaleGreaterThanTwoWithZeros() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
+        Account account = new Account(USER_ID);
+        account.increaseBalance(initialBalance);
+        account.decreaseBalance(amountWithdrawn);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testDecreaseBalance$WhenScaleGreaterThanTwoWithNonZeros() {
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        Account account = new Account(USER_ID);
+        account.increaseBalance(initialBalance);
+        Exception exception = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(amountWithdrawn));
+        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+    }
+
+    @Test
+    void testDecreaseBalance$WhenAmountGreaterThanBalance() {
+        BigDecimal amountWithdrawn = BigDecimal.ONE;
+        Account account = new Account(USER_ID);
         Exception exception = assertThrows(InsufficientFundsException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(INSUFFICIENT_BALANCE, exception.getMessage());
     }
 
     @Test
     void testDecreaseBalance$WhenZeroAmount() {
-        BigDecimal amount = BigDecimal.valueOf(0.0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal amountWithdrawn = BigDecimal.ZERO;
         Account account = new Account(USER_ID);
-        Exception exception = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(amount));
+        Exception exception = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
     }
 
     @Test
     void testDecreaseBalance$WhenNegativeAmount() {
-        BigDecimal initialBalance = BigDecimal.valueOf(999.99).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal amount = BigDecimal.valueOf(-999.99).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal initialBalance = BigDecimal.TEN;
+        BigDecimal amountWithdrawn = BigDecimal.ONE.negate();
         Account account = new Account(USER_ID);
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(amount));
+        Exception exception = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
     }
 

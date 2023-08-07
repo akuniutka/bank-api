@@ -1,6 +1,5 @@
 package dev.akuniutka.bank.api.dto;
 
-import dev.akuniutka.bank.api.entity.Account;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
