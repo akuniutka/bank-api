@@ -17,10 +17,6 @@ public class AccountService {
         this.repository = repository;
     }
 
-    public Long addNewUser() {
-        return repository.save(new Account()).getId();
-    }
-
     public BigDecimal getUserBalance(Long userId) {
         assertUserId(userId);
         Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));

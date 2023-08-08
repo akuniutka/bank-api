@@ -2,7 +2,6 @@ package dev.akuniutka.bank.api.entity;
 
 import dev.akuniutka.bank.api.exception.InsufficientFundsException;
 import dev.akuniutka.bank.api.exception.WrongAmountException;
-import dev.akuniutka.bank.api.exception.WrongUserIdException;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -13,7 +12,6 @@ import java.math.RoundingMode;
 
 @Entity
 public class Account {
-    private final static String USER_ID_IS_NULL = "user id is null";
     private final static String AMOUNT_IS_NULL = "amount is null";
     private final static String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
     private final static String WRONG_MINOR_UNITS = "wrong minor units";

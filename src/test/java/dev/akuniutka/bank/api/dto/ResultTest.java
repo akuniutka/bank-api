@@ -12,23 +12,23 @@ class ResultTest {
     private static final String CODE_IS_NULL = "code is null";
 
     @Test
-    void testResult$WhenNotNullCodeAndNotNullMessage() {
+    void testResultWhenCodeIsNotNullAndMessageIsNotNull() {
         assertDoesNotThrow(() -> new Result(CODE, MESSAGE));
     }
 
     @Test
-    void testResult$WhenNotNullCodeAndNullMessage() {
+    void testResultWhenCodeIsNotNullAndMessageIsNull() {
         assertDoesNotThrow(() -> new Result(CODE, null));
     }
 
     @Test
-    void testResult$WhenNullCodeAndNotNullMessage() {
+    void testResultWhenCodeIsNullAndMessageIsNotNull() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> new Result(null, MESSAGE));
         assertEquals(CODE_IS_NULL, exception.getMessage());
     }
 
     @Test
-    void testResult$WhenNullCodeAndNullMessage() {
+    void testResultWhenCodeIsNullAndMessageIsNull() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> new Result(null, null));
         assertEquals(CODE_IS_NULL, exception.getMessage());
     }
