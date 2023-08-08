@@ -1,7 +1,8 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.exception.WrongUserIdException;
+import dev.akuniutka.bank.api.exception.GetBalanceException;
+import dev.akuniutka.bank.api.exception.CashOrderException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +11,7 @@ import java.math.BigDecimal;
 @Service
 public class AccountService {
     private final static String USER_ID_IS_NULL = "user id is null";
-    private final static String USER_DOES_NOT_EXIST = "user does not exist";
+    private final static String USER_NOT_FOUND = "user not found";
     private final AccountRepository repository;
 
     public AccountService(AccountRepository repository) {
@@ -18,28 +19,31 @@ public class AccountService {
     }
 
     public BigDecimal getUserBalance(Long userId) {
-        assertUserId(userId);
-        Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
+        if (userId == null) {
+            throw new GetBalanceException(USER_ID_IS_NULL);
+        }
+        Account account = repository.findById(userId).orElseThrow(
+                () -> new GetBalanceException(USER_NOT_FOUND)
+        );
         return account.getBalance();
     }
 
     public void increaseUserBalance(Long userId, BigDecimal amount) {
-        assertUserId(userId);
-        Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
+        Account account = getAccountById(userId);
         account.increaseBalance(amount);
         repository.save(account);
     }
 
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
-        assertUserId(userId);
-        Account account = repository.findById(userId).orElseThrow(() -> new WrongUserIdException(USER_DOES_NOT_EXIST));
+        Account account = getAccountById(userId);
         account.decreaseBalance(amount);
         repository.save(account);
     }
 
-    private void assertUserId(Long userId) {
+    private Account getAccountById(Long userId) {
         if (userId == null) {
-            throw new WrongUserIdException(USER_ID_IS_NULL);
+            throw new CashOrderException(USER_ID_IS_NULL);
         }
+        return repository.findById(userId).orElseThrow(() -> new CashOrderException(USER_NOT_FOUND));
     }
 }

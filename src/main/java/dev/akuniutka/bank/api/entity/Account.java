@@ -1,7 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.InsufficientFundsException;
-import dev.akuniutka.bank.api.exception.WrongAmountException;
+import dev.akuniutka.bank.api.exception.CashOrderException;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -37,18 +36,18 @@ public class Account {
     public void decreaseBalance(BigDecimal amount) {
         assertAmount(amount);
         if (balance.compareTo(amount) < 0) {
-            throw new InsufficientFundsException(INSUFFICIENT_BALANCE);
+            throw new CashOrderException(INSUFFICIENT_BALANCE);
         }
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void assertAmount(BigDecimal amount) {
         if (amount == null) {
-            throw new WrongAmountException(AMOUNT_IS_NULL);
+            throw new CashOrderException(AMOUNT_IS_NULL);
         } else if (amount.signum() != 1) {
-            throw new WrongAmountException(AMOUNT_IS_NOT_POSITIVE);
+            throw new CashOrderException(AMOUNT_IS_NOT_POSITIVE);
         } else if (amount.setScale(2, RoundingMode.HALF_UP).compareTo(amount) != 0) {
-            throw new WrongAmountException(WRONG_MINOR_UNITS);
+            throw new CashOrderException(WRONG_MINOR_UNITS);
         }
     }
 }
