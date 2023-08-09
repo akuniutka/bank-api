@@ -4,20 +4,18 @@ import java.math.BigDecimal;
 
 public class ResponseDto {
     private final BigDecimal result;
-    private String message = "";
+    private final String message;
 
-    public ResponseDto(BigDecimal result) {
+    public ResponseDto(BigDecimal result, String message) {
         if (result == null) {
             throw new IllegalArgumentException("result is null");
         }
         this.result = result;
+        this.message = message == null ? "" : message;
     }
 
-    public ResponseDto(BigDecimal result, String message) {
-        this(result);
-        if (message != null) {
-            this.message = message;
-        }
+    public ResponseDto(BigDecimal result) {
+        this(result, "");
     }
 
     public BigDecimal getResult() {
