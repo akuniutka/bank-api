@@ -24,15 +24,15 @@ public class AccountController {
 
     @PutMapping("/putMoney")
 //    @Operation(summary = "Put money to user's account")
-    public ResponseDto putMoney(CashOrderDto orderDto) {
-        service.increaseUserBalance(orderDto.getUserId(), orderDto.getAmount());
+    public ResponseDto putMoney(CashOrderDto order) {
+        service.increaseUserBalance(order.getUserId(), order.getAmount());
         return new ResponseDto(BigDecimal.ONE);
     }
 
     @PutMapping("/takeMoney")
 //    @Operation(summary = "Take money from user's account")
-    public ResponseDto takeMoney(CashOrderDto orderDto) {
-        service.decreaseUserBalance(orderDto.getUserId(), orderDto.getAmount());
+    public ResponseDto takeMoney(CashOrderDto order) {
+        service.decreaseUserBalance(order.getUserId(), order.getAmount());
         return new ResponseDto(BigDecimal.ONE);
     }
 

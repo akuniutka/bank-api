@@ -1,5 +1,8 @@
 package dev.akuniutka.bank.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.akuniutka.bank.api.dto.CashOrderDto;
+import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.service.AccountService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,7 @@ class AccountControllerTest {
     private MockMvc mvc;
     @MockBean
     private AccountService service;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void testAccountController() {
@@ -37,35 +41,44 @@ class AccountControllerTest {
     @Test
     void testGetBalance() throws Exception {
         BigDecimal balance = BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP);
+        ResponseDto response = new ResponseDto(balance);
+        String expected = objectMapper.writeValueAsString(response);
         given(service.getUserBalance(1L)).willReturn(balance);
         mvc.perform(get(GET_BALANCE + "/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("{\"result\":" + balance + ",\"message\":\"\"}"));
+//                .andExpect(content().json("{\"result\":" + balance + ",\"message\":\"\"}"));
+                .andExpect(content().json(expected, true));
     }
 
     @Test
     void testPutMoney() throws Exception {
-        String json = "{\"userId\":1,\"amount\":10}";
+        ResponseDto response = new ResponseDto(BigDecimal.ONE);
+        String expected = objectMapper.writeValueAsString(response);
+        CashOrderDto order = new CashOrderDto(1L, BigDecimal.TEN);
+        String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(jsonOrder))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("{\"result\":1,\"message\":\"\"}"));
+                .andExpect(content().json(expected, true));
     }
 
     @Test
     void testTakeMoney() throws Exception {
-        String json = "{\"userId\":1,\"amount\":10}";
+        ResponseDto response = new ResponseDto(BigDecimal.ONE);
+        String expected = objectMapper.writeValueAsString(response);
+        CashOrderDto order = new CashOrderDto(1L, BigDecimal.TEN);
+        String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
+                        .content(jsonOrder))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("{\"result\":1,\"message\":\"\"}"));
+                .andExpect(content().json(expected, true));
     }
 }

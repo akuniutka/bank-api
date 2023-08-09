@@ -15,14 +15,14 @@ class CashOrderDtoTest {
     @Test
     void testGetUserId() {
         Long expected = 1L;
-        CashOrderDto orderDto = new CashOrderDto(expected, BigDecimal.TEN);
-        assertEquals(expected, orderDto.getUserId());
+        CashOrderDto order = new CashOrderDto(expected, BigDecimal.TEN);
+        assertEquals(expected, order.getUserId());
     }
 
     @Test
     void testGetAmount() {
         BigDecimal expected = BigDecimal.TEN;
-        CashOrderDto orderDto = new CashOrderDto(1L, expected);
-        assertEquals(expected, orderDto.getAmount());
+        CashOrderDto order = new CashOrderDto(1L, expected);
+        assertEquals(expected, order.getAmount());
     }
 }

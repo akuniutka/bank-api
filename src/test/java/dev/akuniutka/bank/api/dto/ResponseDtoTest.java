@@ -52,21 +52,21 @@ class ResponseDtoTest {
     @Test
     void testGetResult() {
         BigDecimal expected = BigDecimal.ONE;
-        ResponseDto responseDto = new ResponseDto(expected, MESSAGE);
-        assertEquals(expected, responseDto.getResult());
+        ResponseDto response = new ResponseDto(expected, MESSAGE);
+        assertEquals(expected, response.getResult());
     }
 
     @Test
     void testGetMessageWhenMessageIsNotNull() {
         String expected = MESSAGE;
-        ResponseDto responseDto = new ResponseDto(BigDecimal.ONE, expected);
-        assertEquals(expected, responseDto.getMessage());
+        ResponseDto response = new ResponseDto(BigDecimal.ONE, expected);
+        assertEquals(expected, response.getMessage());
     }
 
     @Test
     void testGetMessageWhenMessageIsNull() {
         String expected = "";
-        ResponseDto responseDto = new ResponseDto(BigDecimal.ONE, null);
-        assertEquals(expected, responseDto.getMessage());
+        ResponseDto response = new ResponseDto(BigDecimal.ONE, null);
+        assertEquals(expected, response.getMessage());
     }
 }
