@@ -27,7 +27,8 @@ class AccountServiceTest {
     private static final String USER_ID_IS_NULL = "user id is null";
     private static final String USER_NOT_FOUND = "user not found";
     private static final String AMOUNT_IS_NULL = "amount is null";
-    private static final String AMOUNT_IS_NOT_POSITIVE = "amount is not positive";
+    private static final String AMOUNT_IS_ZERO = "amount is zero";
+    private static final String AMOUNT_IS_NEGATIVE = "amount is negative";
     private static final String WRONG_MINOR_UNITS = "wrong minor units";
     private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private Account account;
@@ -122,7 +123,7 @@ class AccountServiceTest {
         Exception exception = assertThrows(CashOrderException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
-        assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
     }
 
     @Test
@@ -131,7 +132,7 @@ class AccountServiceTest {
         Exception exception = assertThrows(CashOrderException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
-        assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
@@ -223,7 +224,7 @@ class AccountServiceTest {
         Exception exception = assertThrows(CashOrderException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
-        assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
     }
 
     @Test
@@ -234,7 +235,7 @@ class AccountServiceTest {
         Exception exception = assertThrows(CashOrderException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
-        assertEquals(AMOUNT_IS_NOT_POSITIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
