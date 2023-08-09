@@ -6,6 +6,7 @@ import dev.akuniutka.bank.api.exception.CashOrderException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 @Service
@@ -18,6 +19,7 @@ public class AccountService {
         this.repository = repository;
     }
 
+    @Transactional
     public BigDecimal getUserBalance(Long userId) {
         if (userId == null) {
             throw new GetBalanceException(USER_ID_IS_NULL);
@@ -28,12 +30,14 @@ public class AccountService {
         return account.getBalance();
     }
 
+    @Transactional
     public void increaseUserBalance(Long userId, BigDecimal amount) {
         Account account = getAccountById(userId);
         account.increaseBalance(amount);
         repository.save(account);
     }
 
+    @Transactional
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
         Account account = getAccountById(userId);
         account.decreaseBalance(amount);
