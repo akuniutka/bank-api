@@ -25,7 +25,6 @@ public class AccountController {
 
     @PutMapping("/putMoney")
 //    @Operation(summary = "Put money to user's account")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseDto putMoney(CashOrderDto orderDto) {
         service.increaseUserBalance(orderDto.getUserId(), orderDto.getAmount());
         return new ResponseDto(BigDecimal.ONE);
@@ -33,7 +32,6 @@ public class AccountController {
 
     @PutMapping("/takeMoney")
 //    @Operation(summary = "Take money from user's account")
-    @ResponseStatus(HttpStatus.CREATED)
     public ResponseDto takeMoney(CashOrderDto orderDto) {
         service.decreaseUserBalance(orderDto.getUserId(), orderDto.getAmount());
         return new ResponseDto(BigDecimal.ONE);
