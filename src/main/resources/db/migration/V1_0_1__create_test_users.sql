@@ -1,0 +1,4 @@
+INSERT INTO ACCOUNT (ID)
+VALUES
+    (1001),
+    (1002);
