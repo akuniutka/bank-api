@@ -3,7 +3,7 @@ package dev.akuniutka.bank.api.controller;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.service.AccountService;
-//import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,13 +17,13 @@ public class AccountController {
     }
 
     @GetMapping("/getBalance/{userId}")
-//    @Operation(summary = "Get the current balance for a selected user")
+    @Operation(summary = "Get the current balance for a selected user")
     public ResponseDto getBalance(@PathVariable Long userId) {
         return new ResponseDto(service.getUserBalance(userId));
     }
 
     @PutMapping("/putMoney")
-//    @Operation(summary = "Put money to user's account")
+    @Operation(summary = "Put money to user's account")
     public ResponseDto putMoney(@RequestBody CashOrderDto order) {
         service.increaseUserBalance(order.getUserId(), order.getAmount());
         return new ResponseDto(BigDecimal.ONE);
