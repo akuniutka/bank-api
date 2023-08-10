@@ -32,22 +32,25 @@ public class AccountService {
 
     @Transactional
     public void increaseUserBalance(Long userId, BigDecimal amount) {
-        Account account = getAccountById(userId);
+        if (userId == null) {
+            throw new CashOrderException(USER_ID_IS_NULL);
+        }
+        Account account = repository.findById(userId).orElseThrow(
+                () -> new CashOrderException(USER_NOT_FOUND)
+        );
         account.increaseBalance(amount);
         repository.save(account);
     }
 
     @Transactional
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
-        Account account = getAccountById(userId);
-        account.decreaseBalance(amount);
-        repository.save(account);
-    }
-
-    private Account getAccountById(Long userId) {
         if (userId == null) {
             throw new CashOrderException(USER_ID_IS_NULL);
         }
-        return repository.findById(userId).orElseThrow(() -> new CashOrderException(USER_NOT_FOUND));
+        Account account = repository.findById(userId).orElseThrow(
+                () -> new CashOrderException(USER_NOT_FOUND)
+        );
+        account.decreaseBalance(amount);
+        repository.save(account);
     }
 }
