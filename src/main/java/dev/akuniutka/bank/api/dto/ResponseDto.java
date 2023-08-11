@@ -8,7 +8,7 @@ public class ResponseDto {
 
     public ResponseDto(BigDecimal result, String message) {
         if (result == null) {
-            throw new IllegalArgumentException("result is null");
+            throw new IllegalArgumentException("response result is null");
         }
         this.result = result;
         this.message = message == null ? "" : message;

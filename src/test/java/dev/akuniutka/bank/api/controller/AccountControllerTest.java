@@ -48,7 +48,6 @@ class AccountControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(content().json("{\"result\":" + balance + ",\"message\":\"\"}"));
                 .andExpect(content().json(expected, true));
     }
 

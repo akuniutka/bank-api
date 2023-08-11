@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ResponseDtoTest {
-    private static final String RESULT_IS_NULL = "result is null";
+    private static final String RESULT_IS_NULL = "response result is null";
     private static final String MESSAGE = "General Error Message";
 
     @Test

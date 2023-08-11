@@ -30,7 +30,7 @@ public class AccountController {
     }
 
     @PutMapping("/takeMoney")
-//    @Operation(summary = "Take money from user's account")
+    @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
         service.decreaseUserBalance(order.getUserId(), order.getAmount());
         return new ResponseDto(BigDecimal.ONE);
