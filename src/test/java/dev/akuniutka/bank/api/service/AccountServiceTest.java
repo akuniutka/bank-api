@@ -86,6 +86,81 @@ class AccountServiceTest {
     }
 
     @Test
+    void testSetUserBalanceWhenUserExistsAndAmountIsPositive() {
+        BigDecimal amount = BigDecimal.TEN;
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        service.setUserBalance(EXISTING_USER_ID, amount);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserExistsAndAmountIsZero() {
+        BigDecimal amount = BigDecimal.ZERO;
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        service.setUserBalance(EXISTING_USER_ID, amount);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        service.setUserBalance(EXISTING_USER_ID, amount);
+        assertEquals(expected, account.getBalance());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
+        BigDecimal amount = BigDecimal.ONE
+                .setScale(3, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
+                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
+        Exception exception = assertThrows(CashOrderException.class,
+                () -> service.setUserBalance(EXISTING_USER_ID, amount)
+        );
+        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserExistsAndAmountIsNegative() {
+        BigDecimal amount = BigDecimal.TEN.negate();
+        Exception exception = assertThrows(CashOrderException.class,
+                () -> service.setUserBalance(EXISTING_USER_ID, amount)
+        );
+        assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserExistsAndAmountIsNull() {
+        Exception exception = assertThrows(CashOrderException.class,
+                () -> service.setUserBalance(EXISTING_USER_ID, null)
+        );
+        assertEquals(AMOUNT_IS_NULL, exception.getMessage());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserDoesNotExist() {
+        BigDecimal amount = BigDecimal.TEN;
+        Exception exception = assertThrows(CashOrderException.class,
+                () -> service.setUserBalance(NON_EXISTING_USER_ID, amount)
+        );
+        assertEquals(USER_NOT_FOUND, exception.getMessage());
+    }
+
+    @Test
+    void testSetUserBalanceWhenUserIdIsNull() {
+        BigDecimal amount = BigDecimal.TEN;
+        Exception exception = assertThrows(CashOrderException.class,
+                () -> service.setUserBalance(null, amount)
+        );
+        assertEquals(USER_ID_IS_NULL, exception.getMessage());
+    }
+
+    @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
         BigDecimal amount = BigDecimal.TEN;
         BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
