@@ -1,8 +1,9 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.exception.GetBalanceException;
-import dev.akuniutka.bank.api.exception.CashOrderException;
+import dev.akuniutka.bank.api.exception.UserNotFoundException;
+import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +23,10 @@ public class AccountService {
     @Transactional
     public BigDecimal getUserBalance(Long userId) {
         if (userId == null) {
-            throw new GetBalanceException(USER_ID_IS_NULL);
+            throw new BadRequestException(USER_ID_IS_NULL);
         }
         Account account = repository.findById(userId).orElseThrow(
-                () -> new GetBalanceException(USER_NOT_FOUND)
+                () -> new UserNotFoundToGetBalanceException(USER_NOT_FOUND)
         );
         return account.getBalance();
     }
@@ -33,10 +34,10 @@ public class AccountService {
     @Transactional
     public void setUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
-            throw new CashOrderException(USER_ID_IS_NULL);
+            throw new BadRequestException(USER_ID_IS_NULL);
         }
         Account account = repository.findById(userId).orElseThrow(
-                () -> new CashOrderException(USER_NOT_FOUND)
+                () -> new UserNotFoundException(USER_NOT_FOUND)
         );
         account.setBalance(amount);
         repository.save(account);
@@ -45,10 +46,10 @@ public class AccountService {
     @Transactional
     public void increaseUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
-            throw new CashOrderException(USER_ID_IS_NULL);
+            throw new BadRequestException(USER_ID_IS_NULL);
         }
         Account account = repository.findById(userId).orElseThrow(
-                () -> new CashOrderException(USER_NOT_FOUND)
+                () -> new UserNotFoundException(USER_NOT_FOUND)
         );
         account.increaseBalance(amount);
         repository.save(account);
@@ -57,10 +58,10 @@ public class AccountService {
     @Transactional
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
-            throw new CashOrderException(USER_ID_IS_NULL);
+            throw new BadRequestException(USER_ID_IS_NULL);
         }
         Account account = repository.findById(userId).orElseThrow(
-                () -> new CashOrderException(USER_NOT_FOUND)
+                () -> new UserNotFoundException(USER_NOT_FOUND)
         );
         account.decreaseBalance(amount);
         repository.save(account);

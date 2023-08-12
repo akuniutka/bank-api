@@ -1,8 +1,9 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.exception.CashOrderException;
-import dev.akuniutka.bank.api.exception.GetBalanceException;
+import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.UserNotFoundException;
+import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class AccountServiceTest {
 
     @Test
     void testGetUserBalanceWhenUserDoesNotExist() {
-        Exception exception = assertThrows(GetBalanceException.class,
+        Exception exception = assertThrows(UserNotFoundToGetBalanceException.class,
                 () -> service.getUserBalance(NON_EXISTING_USER_ID)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
@@ -79,7 +80,7 @@ class AccountServiceTest {
 
     @Test
     void testGetUserBalanceWhenUserIdIsNull() {
-        Exception exception = assertThrows(GetBalanceException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.getUserBalance(null)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
@@ -119,7 +120,7 @@ class AccountServiceTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.setUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
@@ -128,7 +129,7 @@ class AccountServiceTest {
     @Test
     void testSetUserBalanceWhenUserExistsAndAmountIsNegative() {
         BigDecimal amount = BigDecimal.TEN.negate();
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.setUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
@@ -136,7 +137,7 @@ class AccountServiceTest {
 
     @Test
     void testSetUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.setUserBalance(EXISTING_USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
@@ -145,7 +146,7 @@ class AccountServiceTest {
     @Test
     void testSetUserBalanceWhenUserDoesNotExist() {
         BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(UserNotFoundException.class,
                 () -> service.setUserBalance(NON_EXISTING_USER_ID, amount)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
@@ -154,7 +155,7 @@ class AccountServiceTest {
     @Test
     void testSetUserBalanceWhenUserIdIsNull() {
         BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.setUserBalance(null, amount)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
@@ -186,7 +187,7 @@ class AccountServiceTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
@@ -195,7 +196,7 @@ class AccountServiceTest {
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsZero() {
         BigDecimal amount = BigDecimal.ZERO;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
@@ -204,7 +205,7 @@ class AccountServiceTest {
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
         BigDecimal amount = BigDecimal.TEN.negate();
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
@@ -212,7 +213,7 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(EXISTING_USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
@@ -221,7 +222,7 @@ class AccountServiceTest {
     @Test
     void testIncreaseUserBalanceWhenUserDoesNotExist() {
         BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(UserNotFoundException.class,
                 () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
@@ -230,7 +231,7 @@ class AccountServiceTest {
     @Test
     void testIncreaseUserBalanceWhenUserIdIsNull() {
         BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(null, amount)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
@@ -278,7 +279,7 @@ class AccountServiceTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
@@ -287,7 +288,7 @@ class AccountServiceTest {
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
         BigDecimal amountWithdrawn = BigDecimal.ONE;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(INSUFFICIENT_BALANCE, exception.getMessage());
@@ -296,7 +297,7 @@ class AccountServiceTest {
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsZero() {
         BigDecimal amountWithdrawn = BigDecimal.ZERO;
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
@@ -307,7 +308,7 @@ class AccountServiceTest {
         BigDecimal initialBalance = BigDecimal.TEN;
         BigDecimal amountWithdrawn = BigDecimal.ONE.negate();
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
@@ -315,7 +316,7 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
@@ -326,7 +327,7 @@ class AccountServiceTest {
         BigDecimal initialBalance = BigDecimal.TEN;
         BigDecimal amountWithdrawn = BigDecimal.ONE;
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(UserNotFoundException.class,
                 () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
@@ -337,7 +338,7 @@ class AccountServiceTest {
         BigDecimal initialBalance = BigDecimal.TEN;
         BigDecimal amountWithdrawn = BigDecimal.ONE;
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class,
+        Exception exception = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(null, amountWithdrawn)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());

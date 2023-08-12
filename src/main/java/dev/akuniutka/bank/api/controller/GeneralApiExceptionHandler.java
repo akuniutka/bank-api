@@ -1,8 +1,9 @@
 package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.ResponseDto;
-import dev.akuniutka.bank.api.exception.CashOrderException;
-import dev.akuniutka.bank.api.exception.GetBalanceException;
+import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.UserNotFoundException;
+import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,15 +13,21 @@ import java.math.BigDecimal;
 
 @RestControllerAdvice
 public class GeneralApiExceptionHandler {
-    @ExceptionHandler(GetBalanceException.class)
+    @ExceptionHandler(UserNotFoundToGetBalanceException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseDto catchGetBalanceException(GetBalanceException e) {
+    public ResponseDto catchUserNotFoundToGetBalanceException(UserNotFoundToGetBalanceException e) {
         return new ResponseDto(BigDecimal.ONE.negate(), e.getMessage());
     }
 
-    @ExceptionHandler(CashOrderException.class)
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public ResponseDto catchCashOrderException(CashOrderException e) {
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseDto catchUserNotFoundException(UserNotFoundException e) {
+        return new ResponseDto(BigDecimal.ZERO, e.getMessage());
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseDto catchBadRequestException(BadRequestException e) {
         return new ResponseDto(BigDecimal.ZERO, e.getMessage());
     }
 }

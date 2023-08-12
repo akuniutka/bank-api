@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.CashOrderException;
+import dev.akuniutka.bank.api.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -66,7 +66,7 @@ class AccountTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.setBalance(amount));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(amount));
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
     }
 
@@ -74,14 +74,14 @@ class AccountTest {
     void testSetBalanceWhenAmountIsNegative() {
         BigDecimal amount = BigDecimal.TEN.negate();
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.setBalance(amount));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(amount));
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
     void testSetBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.setBalance(null));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(null));
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
     }
 
@@ -121,7 +121,7 @@ class AccountTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.increaseBalance(amount));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.increaseBalance(amount));
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
     }
 
@@ -129,7 +129,7 @@ class AccountTest {
     void testIncreaseBalanceWhenAmountIsZero() {
         BigDecimal amount = BigDecimal.ZERO;
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.increaseBalance(amount));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.increaseBalance(amount));
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
     }
 
@@ -137,14 +137,14 @@ class AccountTest {
     void testIncreaseBalanceWhenAmountIsNegative() {
         BigDecimal amount = BigDecimal.TEN.negate();
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.increaseBalance(amount));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.increaseBalance(amount));
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
     void testIncreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.increaseBalance(null));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.increaseBalance(null));
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
     }
 
@@ -194,7 +194,7 @@ class AccountTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Account account = new Account();
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class, () -> account.decreaseBalance(amountWithdrawn));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
     }
 
@@ -202,7 +202,7 @@ class AccountTest {
     void testDecreaseBalanceWhenAmountIsGreaterThanBalance() {
         BigDecimal amountWithdrawn = BigDecimal.ONE;
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.decreaseBalance(amountWithdrawn));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(INSUFFICIENT_BALANCE, exception.getMessage());
     }
 
@@ -210,7 +210,7 @@ class AccountTest {
     void testDecreaseBalanceWhenAmountIsZero() {
         BigDecimal amountWithdrawn = BigDecimal.ZERO;
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.decreaseBalance(amountWithdrawn));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
     }
 
@@ -220,14 +220,14 @@ class AccountTest {
         BigDecimal amountWithdrawn = BigDecimal.ONE.negate();
         Account account = new Account();
         account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(CashOrderException.class, () -> account.decreaseBalance(amountWithdrawn));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.decreaseBalance(amountWithdrawn));
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
     void testDecreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception exception = assertThrows(CashOrderException.class, () -> account.decreaseBalance(null));
+        Exception exception = assertThrows(BadRequestException.class, () -> account.decreaseBalance(null));
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
     }
 }

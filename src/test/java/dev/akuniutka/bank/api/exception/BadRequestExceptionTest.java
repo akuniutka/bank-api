@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CashOrderExceptionTest {
+class BadRequestExceptionTest {
     @Test
-    void testCashOrderException() {
+    void testBadRequestException() {
         String expected = "wrong amount error message for bank API";
-        Exception exception = assertThrows(CashOrderException.class, () -> {
-            throw new CashOrderException(expected);
+        Exception exception = assertThrows(BadRequestException.class, () -> {
+            throw new BadRequestException(expected);
         });
         String actual = exception.getMessage();
         assertEquals(expected, actual);

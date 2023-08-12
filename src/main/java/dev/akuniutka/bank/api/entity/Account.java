@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.CashOrderException;
+import dev.akuniutka.bank.api.exception.BadRequestException;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -40,25 +40,25 @@ public class Account {
     public void decreaseBalance(BigDecimal amount) {
         assertAmount(amount);
         if (balance.compareTo(amount) < 0) {
-            throw new CashOrderException(INSUFFICIENT_BALANCE);
+            throw new BadRequestException(INSUFFICIENT_BALANCE);
         }
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void assertBalance(BigDecimal balance) {
         if (balance == null) {
-            throw new CashOrderException(AMOUNT_IS_NULL);
+            throw new BadRequestException(AMOUNT_IS_NULL);
         } else if (balance.signum() < 0) {
-            throw new CashOrderException(AMOUNT_IS_NEGATIVE);
+            throw new BadRequestException(AMOUNT_IS_NEGATIVE);
         } else if (balance.setScale(2, RoundingMode.HALF_UP).compareTo(balance) != 0) {
-            throw new CashOrderException(WRONG_MINOR_UNITS);
+            throw new BadRequestException(WRONG_MINOR_UNITS);
         }
     }
 
     private void assertAmount(BigDecimal amount) {
         assertBalance(amount);
         if (amount.signum() == 0) {
-            throw new CashOrderException(AMOUNT_IS_ZERO);
+            throw new BadRequestException(AMOUNT_IS_ZERO);
         }
     }
 }
