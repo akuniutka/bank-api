@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,7 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AccountControllerIT {
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
@@ -22,10 +23,9 @@ class AccountControllerIT {
     private static final Long EXISTING_USER = 1001L;
     private static final Long NON_EXISTING_USER = 1003L;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final WebTestClient webTestClient = WebTestClient
-            .bindToServer()
-            .baseUrl("http://localhost:8080")
-            .build();
+    @Autowired
+    private  WebTestClient webTestClient;
+
 
     @Test
     void testGetBalanceWhenUserExists() throws Exception {
