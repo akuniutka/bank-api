@@ -24,7 +24,7 @@ class AccountControllerIT {
     private static final Long NON_EXISTING_USER = 1003L;
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
-    private  WebTestClient webTestClient;
+    private WebTestClient webTestClient;
 
 
     @Test
