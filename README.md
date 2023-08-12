@@ -104,7 +104,7 @@ which are enabled (`/actuator/health` by default).
 
 ### /actuator/health
 
-One ot Spring Boot Actuator endpoint which returns the current 
+One ot Spring Boot Actuator endpoints which returns the current 
 status of an application.
 
 ### /v2/api-docs  
@@ -135,4 +135,4 @@ Database has to contain a sequence `HIBERNATE_SEQUENCE` and a table
 
 ![Database structure](db_structure.png)
 
-Or you can use a database dump `dump.sql`.
+Or you can use a database dump `dump.sql` to create a database.
