@@ -50,7 +50,7 @@ class GeneralApiExceptionHandlerTest {
     void catchCashOrderExceptionWhenPutMoney() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ZERO, "user id is null");
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(null, null);
+        CashOrderDto order = new CashOrderDto();
         String jsonOrder = objectMapper.writeValueAsString(order);
         doThrow(new CashOrderException("user id is null")).when(service).increaseUserBalance(null,null);
         mvc.perform(put(PUT_MONEY)
@@ -66,7 +66,7 @@ class GeneralApiExceptionHandlerTest {
     void catchCashOrderExceptionWhenTakeMoney() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ZERO, "user id is null");
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(null, null);
+        CashOrderDto order = new CashOrderDto();
         String jsonOrder = objectMapper.writeValueAsString(order);
         doThrow(new CashOrderException("user id is null")).when(service).decreaseUserBalance(null,null);
         mvc.perform(put(TAKE_MONEY)

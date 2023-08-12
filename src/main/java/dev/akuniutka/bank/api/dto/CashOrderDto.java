@@ -1,22 +1,21 @@
 package dev.akuniutka.bank.api.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.math.BigDecimal;
 
 public class CashOrderDto {
-    @JsonProperty("userId")
-    private final Long userId;
-    @JsonProperty("amount")
-    private final BigDecimal amount;
+    private Long userId;
+    private BigDecimal amount;
 
-    public CashOrderDto(Long userId, BigDecimal amount) {
+    public void setUserId(Long userId) {
         this.userId = userId;
-        this.amount = amount;
     }
 
     public Long getUserId() {
         return userId;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
     public BigDecimal getAmount() {

@@ -55,7 +55,9 @@ class AccountControllerTest {
     void testPutMoney() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ONE);
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(1L, BigDecimal.TEN);
+        CashOrderDto order = new CashOrderDto();
+        order.setUserId(1L);
+        order.setAmount(BigDecimal.TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,7 +72,9 @@ class AccountControllerTest {
     void testTakeMoney() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ONE);
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(1L, BigDecimal.TEN);
+        CashOrderDto order = new CashOrderDto();
+        order.setUserId(1L);
+        order.setAmount(BigDecimal.TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)

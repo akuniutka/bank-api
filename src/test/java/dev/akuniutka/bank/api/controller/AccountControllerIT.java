@@ -61,7 +61,10 @@ class AccountControllerIT {
     void testPutMoneyWhenUserExistsAndAmountIsPositive() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ONE);
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(EXISTING_USER, BigDecimal.ONE);
+        CashOrderDto order = new CashOrderDto();
+        order.setUserId(EXISTING_USER);
+        // TODO: replace with BigDecimal.TEN
+        order.setAmount(BigDecimal.ONE);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -78,7 +81,9 @@ class AccountControllerIT {
     void testTakeMoneyWhenUserExistsAndAmountIsGreaterThanBalance() throws Exception {
         ResponseDto response = new ResponseDto(BigDecimal.ZERO, INSUFFICIENT_BALANCE);
         String expected = objectMapper.writeValueAsString(response);
-        CashOrderDto order = new CashOrderDto(EXISTING_USER, BigDecimal.TEN);
+        CashOrderDto order = new CashOrderDto();
+        order.setUserId(EXISTING_USER);
+        order.setAmount(BigDecimal.TEN);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
