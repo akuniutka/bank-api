@@ -32,18 +32,6 @@ public class AccountService {
     }
 
     @Transactional
-    public void setUserBalance(Long userId, BigDecimal amount) {
-        if (userId == null) {
-            throw new BadRequestException(USER_ID_IS_NULL);
-        }
-        Account account = repository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(USER_NOT_FOUND)
-        );
-        account.setBalance(amount);
-        repository.save(account);
-    }
-
-    @Transactional
     public void increaseUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
             throw new BadRequestException(USER_ID_IS_NULL);

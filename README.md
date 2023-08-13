@@ -119,7 +119,7 @@ database structure and two test users with ids 1001 and 1002. Default
 database connection parameters:
 
 | Parameter | Value               |
-| --------- |---------------------|
+|-----------|---------------------|
 | provider  | PostgreSQL          |
 | port      | 5432                |
 | database  | bank                |
