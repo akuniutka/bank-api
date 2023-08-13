@@ -16,6 +16,7 @@ public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
+    @Column(nullable = false)
     @Access(AccessType.PROPERTY)
     private BigDecimal balance = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
@@ -23,8 +24,14 @@ public class Account {
         return id;
     }
 
-    public void setBalance(BigDecimal balance) {
-        assertBalance(balance);
+    protected void setBalance(BigDecimal balance) {
+        if (balance == null) {
+            throw new IllegalArgumentException(AMOUNT_IS_NULL);
+        } else if (balance.signum() < 0) {
+            throw new IllegalArgumentException(AMOUNT_IS_NEGATIVE);
+        } else if (balance.setScale(2, RoundingMode.HALF_UP).compareTo(balance) != 0) {
+            throw new IllegalArgumentException(WRONG_MINOR_UNITS);
+        }
         this.balance = balance.setScale(2, RoundingMode.HALF_UP);
     }
 
@@ -45,20 +52,15 @@ public class Account {
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
-    private void assertBalance(BigDecimal balance) {
-        if (balance == null) {
-            throw new BadRequestException(AMOUNT_IS_NULL);
-        } else if (balance.signum() < 0) {
-            throw new BadRequestException(AMOUNT_IS_NEGATIVE);
-        } else if (balance.setScale(2, RoundingMode.HALF_UP).compareTo(balance) != 0) {
-            throw new BadRequestException(WRONG_MINOR_UNITS);
-        }
-    }
-
     private void assertAmount(BigDecimal amount) {
-        assertBalance(amount);
-        if (amount.signum() == 0) {
+        if (amount == null) {
+            throw new BadRequestException(AMOUNT_IS_NULL);
+        } else if(amount.signum() == 0) {
             throw new BadRequestException(AMOUNT_IS_ZERO);
+        } else if (amount.signum() < 0) {
+            throw new BadRequestException(AMOUNT_IS_NEGATIVE);
+        } else if (amount.setScale(2, RoundingMode.HALF_UP).compareTo(amount) != 0) {
+            throw new BadRequestException(WRONG_MINOR_UNITS);
         }
     }
 }

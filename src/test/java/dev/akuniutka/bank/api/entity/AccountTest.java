@@ -66,7 +66,7 @@ class AccountTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Account account = new Account();
-        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(amount));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> account.setBalance(amount));
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
     }
 
@@ -74,14 +74,14 @@ class AccountTest {
     void testSetBalanceWhenAmountIsNegative() {
         BigDecimal amount = BigDecimal.TEN.negate();
         Account account = new Account();
-        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(amount));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> account.setBalance(amount));
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
     }
 
     @Test
     void testSetBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception exception = assertThrows(BadRequestException.class, () -> account.setBalance(null));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> account.setBalance(null));
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
     }
 
