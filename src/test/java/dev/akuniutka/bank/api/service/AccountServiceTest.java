@@ -1,10 +1,13 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
+import dev.akuniutka.bank.api.entity.Operation;
+import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
+import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,33 +38,53 @@ class AccountServiceTest {
     private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private Account account;
     @Mock
-    private AccountRepository repository;
+    private AccountRepository accountRepository;
+    @Mock
+    private OperationRepository operationRepository;
     @InjectMocks
     private AccountService service;
     private final List<Account> storedAccounts = new ArrayList<>();
+    private final List<Operation> storedOperations = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
         account = new Account();
         List<Account> accounts = new ArrayList<>();
+        List<Operation> operations = new ArrayList<>();
         accounts.add(account);
         storedAccounts.clear();
-        Mockito.lenient().when(repository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
-        Mockito.lenient().when(repository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
-        Mockito.lenient().when(repository.existsById(EXISTING_USER_ID)).thenReturn(true);
-        Mockito.lenient().when(repository.existsById(NON_EXISTING_USER_ID)).thenReturn(false);
-        Mockito.lenient().when(repository.save(Mockito.any(Account.class))).thenAnswer(a -> store(a.getArguments()[0]));
-        Mockito.lenient().when(repository.findAll()).thenReturn(accounts);
-        Mockito.lenient().when(repository.findAllById(Mockito.anyIterable())).thenAnswer(
+        storedOperations.clear();
+        Mockito.lenient().when(accountRepository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
+        Mockito.lenient().when(accountRepository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
+        Mockito.lenient().when(accountRepository.existsById(EXISTING_USER_ID)).thenReturn(true);
+        Mockito.lenient().when(accountRepository.existsById(NON_EXISTING_USER_ID)).thenReturn(false);
+        Mockito.lenient().when(accountRepository.save(Mockito.any(Account.class))).thenAnswer(
+                a -> storeAccount(a.getArguments()[0])
+        );
+        Mockito.lenient().when(accountRepository.findAll()).thenReturn(accounts);
+        Mockito.lenient().when(accountRepository.findAllById(Mockito.anyIterable())).thenAnswer(
                 a -> userIdsToAccounts(a.getArguments()[0])
         );
-        Mockito.lenient().when(repository.saveAll(Mockito.anyIterable())).thenAnswer(a -> storeAll(a.getArguments()[0]));
-        Mockito.lenient().when(repository.count()).thenReturn(1L);
+        Mockito.lenient().when(accountRepository.saveAll(Mockito.anyIterable())).thenAnswer(
+                a -> storeAllAccounts(a.getArguments()[0])
+        );
+        Mockito.lenient().when(accountRepository.count()).thenReturn(1L);
+        Mockito.lenient().when(operationRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.empty());
+        Mockito.lenient().when(operationRepository.existsById(Mockito.any(Long.class))).thenReturn(false);
+        Mockito.lenient().when(operationRepository.save(Mockito.any(Operation.class))).thenAnswer(
+                a -> storeOperation(a.getArguments()[0])
+        );
+        Mockito.lenient().when(operationRepository.findAll()).thenReturn(operations);
+        Mockito.lenient().when(operationRepository.findAllById(Mockito.anyIterable())).thenReturn(operations);
+        Mockito.lenient().when(operationRepository.saveAll(Mockito.anyIterable())).thenAnswer(
+                a -> storeAllOperations(a.getArguments()[0])
+        );
+        Mockito.lenient().when(operationRepository.count()).thenReturn(0L);
     }
 
     @Test
     void testAccountService() {
-        assertDoesNotThrow(() -> new AccountService(null));
+        assertDoesNotThrow(() -> new AccountService(null, null));
     }
 
     @Test
@@ -90,8 +114,18 @@ class AccountServiceTest {
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
         BigDecimal amount = BigDecimal.TEN;
         BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        Date startDate = new Date();
         service.increaseUserBalance(EXISTING_USER_ID, amount);
+        Date finishDate = new Date();
         assertEquals(expected, account.getBalance());
+        assertEquals(1, storedOperations.size());
+        Operation operation = storedOperations.get(0);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.DEPOSIT, operation.getType());
+        assertEquals(expected, operation.getAmount());
+        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
+        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
     }
 
     @Test
@@ -101,8 +135,18 @@ class AccountServiceTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
+        Date startDate = new Date();
         service.increaseUserBalance(EXISTING_USER_ID, amount);
+        Date finishDate = new Date();
         assertEquals(expected, account.getBalance());
+        assertEquals(1, storedOperations.size());
+        Operation operation = storedOperations.get(0);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.DEPOSIT, operation.getType());
+        assertEquals(expected, operation.getAmount());
+        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
+        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
     }
 
     @Test
@@ -116,6 +160,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -125,6 +170,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -134,6 +180,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -142,6 +189,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -151,6 +199,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -160,6 +209,7 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(null, amount)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -168,8 +218,19 @@ class AccountServiceTest {
         BigDecimal amountWithdrawn = BigDecimal.ONE;
         BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
         account.increaseBalance(initialBalance);
+        Date startDate = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
+        Date finishDate = new Date();
         assertEquals(expected, account.getBalance());
+        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
+        assertEquals(1, storedOperations.size());
+        Operation operation = storedOperations.get(0);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.WITHDRAWAL, operation.getType());
+        assertEquals(expected, operation.getAmount());
+        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
+        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
     }
 
     @Test
@@ -178,8 +239,19 @@ class AccountServiceTest {
         BigDecimal amountWithdrawn = BigDecimal.TEN;
         BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         account.increaseBalance(initialBalance);
+        Date startDate = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
+        Date finishDate = new Date();
         assertEquals(expected, account.getBalance());
+        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
+        assertEquals(1, storedOperations.size());
+        Operation operation = storedOperations.get(0);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.WITHDRAWAL, operation.getType());
+        assertEquals(expected, operation.getAmount());
+        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
+        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
     }
 
     @Test
@@ -191,8 +263,19 @@ class AccountServiceTest {
                 .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
         account.increaseBalance(initialBalance);
+        Date startDate = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
+        Date finishDate = new Date();
         assertEquals(expected, account.getBalance());
+        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
+        assertEquals(1, storedOperations.size());
+        Operation operation = storedOperations.get(0);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.WITHDRAWAL, operation.getType());
+        assertEquals(expected, operation.getAmount());
+        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
+        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
     }
 
     @Test
@@ -208,6 +291,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -217,6 +301,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(INSUFFICIENT_BALANCE, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -226,6 +311,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -237,6 +323,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -245,6 +332,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -256,6 +344,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
         );
         assertEquals(USER_NOT_FOUND, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -267,6 +356,7 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(null, amountWithdrawn)
         );
         assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        assertEquals(0, storedOperations.size());
     }
 
     private List<Account> userIdsToAccounts(Object o) {
@@ -285,7 +375,7 @@ class AccountServiceTest {
         }
     }
 
-    private Account store(Object o) {
+    private Account storeAccount(Object o) {
         try {
             Account a = (Account) o;
             storedAccounts.add(a);
@@ -295,7 +385,7 @@ class AccountServiceTest {
         }
     }
 
-    private List<Account> storeAll(Object o) {
+    private List<Account> storeAllAccounts(Object o) {
         try {
             @SuppressWarnings("unchecked") Iterable<Account> accounts = (Iterable<Account>) o;
             for (Account a : accounts) {
@@ -307,4 +397,25 @@ class AccountServiceTest {
         }
     }
 
+    private Operation storeOperation(Object o) {
+        try {
+            Operation op = (Operation) o;
+            storedOperations.add(op);
+            return op;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("argument iis not of Operation type");
+        }
+    }
+
+    private List<Operation> storeAllOperations(Object o) {
+        try {
+            @SuppressWarnings("unchecked") Iterable<Operation> operations = (Iterable<Operation>) o;
+            for (Operation op : operations) {
+                storedOperations.add(op);
+            }
+            return storedOperations;
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("argument is not of Iterable<Operation> type");
+        }
+    }
 }
