@@ -1,7 +1,5 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.BadRequestException;
-
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -11,10 +9,6 @@ import java.util.Date;
 public class Operation {
     private static final String ACCOUNT_IS_NULL = "account for operation is null";
     private static final String OPERATION_TYPE_IS_NULL = "type of operation is null";
-    private static final String AMOUNT_IS_NULL = "amount is null";
-    private static final String AMOUNT_IS_ZERO = "amount is zero";
-    private static final String AMOUNT_IS_NEGATIVE = "amount is negative";
-    private static final String WRONG_MINOR_UNITS = "wrong minor units";
     private static final String DATE_IS_NULL = "date is null";
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -56,15 +50,7 @@ public class Operation {
     }
 
     public void setAmount(BigDecimal amount) {
-        if (amount == null) {
-            throw new BadRequestException(AMOUNT_IS_NULL);
-        } else if(amount.signum() == 0) {
-            throw new BadRequestException(AMOUNT_IS_ZERO);
-        } else if (amount.signum() < 0) {
-            throw new BadRequestException(AMOUNT_IS_NEGATIVE);
-        } else if (amount.setScale(2, RoundingMode.HALF_UP).compareTo(amount) != 0) {
-            throw new BadRequestException(WRONG_MINOR_UNITS);
-        }
+        AmountValidator.assertUserInput(amount);
         this.amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
 
