@@ -1,7 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.BackendErrorException;
-import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -34,7 +33,7 @@ class OperationTest {
     @Test
     void testSetAccountWhenAccountIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BackendErrorException.class, () -> operation.setAccount(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> operation.setAccount(null));
         assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
@@ -54,7 +53,7 @@ class OperationTest {
     @Test
     void testSetTypeWhenTypeIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BackendErrorException.class, () -> operation.setType(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> operation.setType(null));
         assertEquals(OPERATION_TYPE_IS_NULL, e.getMessage());
     }
 
@@ -81,28 +80,28 @@ class OperationTest {
     @Test
     void testSetAmountWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(ONE_THOUSANDTH));
+        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsZero() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNegative() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(MINUS_TEN));
+        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -123,7 +122,7 @@ class OperationTest {
     @Test
     void testSetDateWhenDateIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(BackendErrorException.class, () -> operation.setDate(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> operation.setDate(null));
         assertEquals(DATE_IS_NULL, e.getMessage());
     }
 }

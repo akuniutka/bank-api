@@ -1,7 +1,5 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.BackendErrorException;
-
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -29,7 +27,7 @@ public class Operation {
 
     public void setAccount(Account account) {
         if (account == null) {
-            throw new BackendErrorException(ErrorMessage.ACCOUNT_IS_NULL);
+            throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);
         }
         this.account = account;
     }
@@ -40,7 +38,7 @@ public class Operation {
 
     public void setType(OperationType type) {
         if (type == null) {
-            throw new BackendErrorException(ErrorMessage.OPERATION_TYPE_IS_NULL);
+            throw new IllegalArgumentException(ErrorMessage.OPERATION_TYPE_IS_NULL);
         }
         this.type = type;
     }
@@ -60,7 +58,7 @@ public class Operation {
 
     public void setDate(Date date) {
         if (date == null) {
-            throw new BackendErrorException(ErrorMessage.DATE_IS_NULL);
+            throw new IllegalArgumentException(ErrorMessage.DATE_IS_NULL);
         }
         this.date = date;
     }

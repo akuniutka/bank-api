@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.IllegalAmountException;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -36,7 +36,7 @@ public class Account {
     public void decreaseBalance(BigDecimal amount) {
         AmountValidator.assertAmount(amount);
         if (balance.compareTo(amount) < 0) {
-            throw new BadRequestException(ErrorMessage.INSUFFICIENT_BALANCE);
+            throw new IllegalAmountException(ErrorMessage.INSUFFICIENT_BALANCE);
         }
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
     }

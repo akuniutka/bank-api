@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
-import dev.akuniutka.bank.api.exception.BackendErrorException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.AccountService;
@@ -112,38 +111,6 @@ class GeneralApiExceptionHandlerTest {
                         .content(jsonOrder))
                 .andDo(print())
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json(expected, true));
-    }
-
-    @Test
-    void catchBackendErrorExceptionWhenPutMoney() throws Exception {
-        CashOrderDto order = new CashOrderDto();
-        String jsonOrder = objectMapper.writeValueAsString(order);
-        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
-        String expected = objectMapper.writeValueAsString(response);
-        doThrow(new BackendErrorException(USER_ID_IS_NULL)).when(service).increaseUserBalance(null, NULL);
-        mvc.perform(put(PUT_MONEY)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonOrder))
-                .andDo(print())
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json(expected, true));
-    }
-
-    @Test
-    void catchBackendErrorExceptionWhenTakeMoney() throws Exception {
-        CashOrderDto order = new CashOrderDto();
-        String jsonOrder = objectMapper.writeValueAsString(order);
-        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
-        String expected = objectMapper.writeValueAsString(response);
-        doThrow(new BackendErrorException(USER_ID_IS_NULL)).when(service).decreaseUserBalance(null, NULL);
-        mvc.perform(put(TAKE_MONEY)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonOrder))
-                .andDo(print())
-                .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
     }

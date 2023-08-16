@@ -3,6 +3,7 @@ package dev.akuniutka.bank.api.service;
 import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
+import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
@@ -45,7 +46,11 @@ public class AccountService {
         Account account = accountRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND)
         );
-        account.increaseBalance(amount);
+        try {
+            account.increaseBalance(amount);
+        } catch (IllegalAmountException e) {
+            throw new BadRequestException(e.getMessage());
+        }
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.DEPOSIT);
@@ -63,7 +68,11 @@ public class AccountService {
         Account account = accountRepository.findById(userId).orElseThrow(
                 () -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND)
         );
-        account.decreaseBalance(amount);
+        try {
+            account.decreaseBalance(amount);
+        } catch (IllegalAmountException e) {
+            throw new BadRequestException(e.getMessage());
+        }
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.WITHDRAWAL);

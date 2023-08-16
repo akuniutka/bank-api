@@ -2,7 +2,6 @@ package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
-import dev.akuniutka.bank.api.exception.BackendErrorException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import org.springframework.http.HttpStatus;
@@ -29,12 +28,6 @@ public class GeneralApiExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseDto catchBadRequestException(BadRequestException e) {
-        return new ResponseDto(BigDecimal.ZERO, e.getMessage());
-    }
-
-    @ExceptionHandler(BackendErrorException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseDto catchBackendErrorException(BackendErrorException e) {
         return new ResponseDto(BigDecimal.ZERO, e.getMessage());
     }
 }

@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -46,21 +46,21 @@ class AccountTest {
     @Test
     void testSetBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         Account account = new Account();
-        Exception e = assertThrows(IllegalArgumentException.class, () -> account.setBalance(ONE_THOUSANDTH));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.setBalance(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testSetBalanceWhenAmountIsNegative() {
         Account account = new Account();
-        Exception e = assertThrows(IllegalArgumentException.class, () -> account.setBalance(MINUS_TEN));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.setBalance(MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testSetBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(IllegalArgumentException.class, () -> account.setBalance(NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.setBalance(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -87,28 +87,28 @@ class AccountTest {
     @Test
     void testIncreaseBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.increaseBalance(ONE_THOUSANDTH));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.increaseBalance(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testIncreaseBalanceWhenAmountIsZero() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.increaseBalance(ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.increaseBalance(ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testIncreaseBalanceWhenAmountIsNegative() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.increaseBalance(MINUS_TEN));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.increaseBalance(MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testIncreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.increaseBalance(NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.increaseBalance(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -141,21 +141,21 @@ class AccountTest {
     void testDecreaseBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         Account account = new Account();
         account.increaseBalance(TEN);
-        Exception e = assertThrows(BadRequestException.class, () -> account.decreaseBalance(ONE_THOUSANDTH));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.decreaseBalance(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testDecreaseBalanceWhenAmountIsGreaterThanBalance() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.decreaseBalance(ONE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.decreaseBalance(ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
     }
 
     @Test
     void testDecreaseBalanceWhenAmountIsZero() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.decreaseBalance(ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.decreaseBalance(ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
@@ -163,14 +163,14 @@ class AccountTest {
     void testDecreaseBalanceWhenAmountIsNegative() {
         Account account = new Account();
         account.increaseBalance(TEN);
-        Exception e = assertThrows(BadRequestException.class, () -> account.decreaseBalance(MINUS_ONE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.decreaseBalance(MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testDecreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(BadRequestException.class, () -> account.decreaseBalance(NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> account.decreaseBalance(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 }
