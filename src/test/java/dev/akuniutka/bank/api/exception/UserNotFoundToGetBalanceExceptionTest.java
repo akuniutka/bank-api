@@ -8,10 +8,9 @@ class UserNotFoundToGetBalanceExceptionTest {
     @Test
     void testUserNotFoundToGetBalanceException() {
         String expected = "wrong user id error message for bank API";
-        Exception exception = assertThrows(UserNotFoundToGetBalanceException.class, () -> {
+        Exception e = assertThrows(UserNotFoundToGetBalanceException.class, () -> {
             throw new UserNotFoundToGetBalanceException(expected);
         });
-        String actual = exception.getMessage();
-        assertEquals(expected, actual);
+        assertEquals(expected, e.getMessage());
     }
 }

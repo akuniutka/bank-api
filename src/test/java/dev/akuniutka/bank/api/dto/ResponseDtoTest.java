@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.Amount.*;
 
 class ResponseDtoTest {
-    private static final String RESULT_IS_NULL = "response result is null";
     private static final String MESSAGE = "General Error Message";
 
     @Test
@@ -17,41 +18,35 @@ class ResponseDtoTest {
 
     @Test
     void testResponseDtoWhenResultIsNull() {
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> new ResponseDto(null)
-        );
-        assertEquals(RESULT_IS_NULL, exception.getMessage());
+        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(null));
+        assertEquals(RESULT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testResponseDtoWhenResultIsNotNullAndMessageIsNotNull() {
-        assertDoesNotThrow(() -> new ResponseDto(BigDecimal.ONE, MESSAGE));
+        assertDoesNotThrow(() -> new ResponseDto(ONE, MESSAGE));
     }
 
     @Test
     void testResponseDtoWhenResultIsNotNullAndMessageIsNull() {
-        assertDoesNotThrow(() -> new ResponseDto(BigDecimal.ONE, null));
+        assertDoesNotThrow(() -> new ResponseDto(ONE, null));
     }
 
     @Test
     void testResponseDtoWhenResultIsNullAndMessageIsNotNull() {
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> new ResponseDto(null, MESSAGE)
-        );
-        assertEquals(RESULT_IS_NULL, exception.getMessage());
+        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(NULL, MESSAGE));
+        assertEquals(RESULT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testResponseDtoWhenResultIsNullAndMessageIsNull() {
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> new ResponseDto(null, null)
-        );
-        assertEquals(RESULT_IS_NULL, exception.getMessage());
+        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(NULL, null));
+        assertEquals(RESULT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testGetResult() {
-        BigDecimal expected = BigDecimal.ONE;
+        BigDecimal expected = ONE;
         ResponseDto response = new ResponseDto(expected, MESSAGE);
         assertEquals(expected, response.getResult());
     }
@@ -59,14 +54,14 @@ class ResponseDtoTest {
     @Test
     void testGetMessageWhenMessageIsNotNull() {
         String expected = MESSAGE;
-        ResponseDto response = new ResponseDto(BigDecimal.ONE, expected);
+        ResponseDto response = new ResponseDto(ONE, expected);
         assertEquals(expected, response.getMessage());
     }
 
     @Test
     void testGetMessageWhenMessageIsNull() {
         String expected = "";
-        ResponseDto response = new ResponseDto(BigDecimal.ONE, null);
+        ResponseDto response = new ResponseDto(ONE, null);
         assertEquals(expected, response.getMessage());
     }
 }

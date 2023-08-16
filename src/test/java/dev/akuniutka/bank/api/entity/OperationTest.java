@@ -1,23 +1,16 @@
 package dev.akuniutka.bank.api.entity;
 
+import dev.akuniutka.bank.api.exception.BackendErrorException;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.Amount.*;
 
 class OperationTest {
-    private static final String ACCOUNT_IS_NULL = "account for operation is null";
-    private static final String OPERATION_TYPE_IS_NULL = "type of operation is null";
-    private static final String AMOUNT_IS_NULL = "amount is null";
-    private static final String AMOUNT_IS_ZERO = "amount is zero";
-    private static final String AMOUNT_IS_NEGATIVE = "amount is negative";
-    private static final String WRONG_MINOR_UNITS = "wrong minor units";
-    private static final String DATE_IS_NULL = "date is null";
-
     @Test
     void testGetId() {
         Operation operation = new Operation();
@@ -41,11 +34,8 @@ class OperationTest {
     @Test
     void testSetAccountWhenAccountIsNull() {
         Operation operation = new Operation();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> operation.setAccount(null)
-        );
-        String actual = exception.getMessage();
-        assertEquals(ACCOUNT_IS_NULL, actual);
+        Exception e = assertThrows(BackendErrorException.class, () -> operation.setAccount(null));
+        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
@@ -64,11 +54,8 @@ class OperationTest {
     @Test
     void testSetTypeWhenTypeIsNull() {
         Operation operation = new Operation();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> operation.setType(null)
-        );
-        String actual = exception.getMessage();
-        assertEquals(OPERATION_TYPE_IS_NULL, actual);
+        Exception e = assertThrows(BackendErrorException.class, () -> operation.setType(null));
+        assertEquals(OPERATION_TYPE_IS_NULL, e.getMessage());
     }
 
     @Test
@@ -79,70 +66,44 @@ class OperationTest {
 
     @Test
     void testSetAmountWhenAmountIsPositive() {
-        BigDecimal expected = BigDecimal.TEN;
         Operation operation = new Operation();
-        operation.setAmount(expected);
-        expected = expected.setScale(2, RoundingMode.HALF_UP);
-        assertEquals(expected, operation.getAmount());
+        operation.setAmount(TEN);
+        assertEquals(FORMATTED_TEN, operation.getAmount());
     }
 
     @Test
     void testSetAmountWhenScaleIsGreaterThanTwoButWithZeros() {
-        BigDecimal expected = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Operation operation = new Operation();
-        operation.setAmount(expected);
-        expected = expected.setScale(2, RoundingMode.HALF_UP);
-        assertEquals(expected, operation.getAmount());
+        operation.setAmount(TEN_THOUSANDTHS);
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
     }
 
     @Test
     void testSetAmountWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        BigDecimal expected = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
         Operation operation = new Operation();
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> operation.setAmount(expected)
-        );
-        String actual = exception.getMessage();
-        assertEquals(WRONG_MINOR_UNITS, actual);
+        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(ONE_THOUSANDTH));
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsZero() {
-        BigDecimal expected = BigDecimal.ZERO;
         Operation operation = new Operation();
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> operation.setAmount(expected)
-        );
-        String actual = exception.getMessage();
-        assertEquals(AMOUNT_IS_ZERO, actual);
+        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(ZERO));
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNegative() {
-        BigDecimal expected = BigDecimal.TEN.negate();
         Operation operation = new Operation();
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> operation.setAmount(expected)
-        );
-        String actual = exception.getMessage();
-        assertEquals(AMOUNT_IS_NEGATIVE, actual);
+        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(MINUS_TEN));
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNull() {
         Operation operation = new Operation();
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> operation.setAmount(null)
-        );
-        String actual = exception.getMessage();
-        assertEquals(AMOUNT_IS_NULL, actual);
+        Exception e = assertThrows(BadRequestException.class, () -> operation.setAmount(NULL));
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
@@ -162,10 +123,7 @@ class OperationTest {
     @Test
     void testSetDateWhenDateIsNull() {
         Operation operation = new Operation();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> operation.setDate(null)
-        );
-        String actual = exception.getMessage();
-        assertEquals(DATE_IS_NULL, actual);
+        Exception e = assertThrows(BackendErrorException.class, () -> operation.setDate(null));
+        assertEquals(DATE_IS_NULL, e.getMessage());
     }
 }

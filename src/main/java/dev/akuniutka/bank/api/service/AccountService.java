@@ -14,10 +14,10 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import dev.akuniutka.bank.api.entity.ErrorMessage;
+
 @Service
 public class AccountService {
-    private final static String USER_ID_IS_NULL = "user id is null";
-    private final static String USER_NOT_FOUND = "user not found";
     private final AccountRepository accountRepository;
     private final OperationRepository operationRepository;
 
@@ -29,10 +29,10 @@ public class AccountService {
     @Transactional
     public BigDecimal getUserBalance(Long userId) {
         if (userId == null) {
-            throw new BadRequestException(USER_ID_IS_NULL);
+            throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
         }
         Account account = accountRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundToGetBalanceException(USER_NOT_FOUND)
+                () -> new UserNotFoundToGetBalanceException(ErrorMessage.USER_NOT_FOUND)
         );
         return account.getBalance();
     }
@@ -40,10 +40,10 @@ public class AccountService {
     @Transactional
     public void increaseUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
-            throw new BadRequestException(USER_ID_IS_NULL);
+            throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
         }
         Account account = accountRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(USER_NOT_FOUND)
+                () -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND)
         );
         account.increaseBalance(amount);
         Operation operation = new Operation();
@@ -58,10 +58,10 @@ public class AccountService {
     @Transactional
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
         if (userId == null) {
-            throw new BadRequestException(USER_ID_IS_NULL);
+            throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
         }
         Account account = accountRepository.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(USER_NOT_FOUND)
+                () -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND)
         );
         account.decreaseBalance(amount);
         Operation operation = new Operation();

@@ -8,7 +8,6 @@ import java.math.RoundingMode;
 
 @Entity
 public class Account {
-    private final static String INSUFFICIENT_BALANCE = "insufficient balance";
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -21,7 +20,7 @@ public class Account {
     }
 
     protected void setBalance(BigDecimal balance) {
-        AmountValidator.assertAmountZeroAllowed(balance);
+        AmountValidator.assertBalance(balance);
         this.balance = balance.setScale(2, RoundingMode.HALF_UP);
     }
 
@@ -30,14 +29,14 @@ public class Account {
     }
 
     public void increaseBalance(BigDecimal amount) {
-        AmountValidator.assertUserInput(amount);
+        AmountValidator.assertAmount(amount);
         balance = balance.add(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
     public void decreaseBalance(BigDecimal amount) {
-        AmountValidator.assertUserInput(amount);
+        AmountValidator.assertAmount(amount);
         if (balance.compareTo(amount) < 0) {
-            throw new BadRequestException(INSUFFICIENT_BALANCE);
+            throw new BadRequestException(ErrorMessage.INSUFFICIENT_BALANCE);
         }
         balance = balance.subtract(amount.setScale(2, RoundingMode.HALF_UP));
     }

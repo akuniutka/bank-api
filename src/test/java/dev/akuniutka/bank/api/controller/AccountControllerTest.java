@@ -12,7 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
@@ -21,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static dev.akuniutka.bank.api.Amount.*;
 
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
@@ -40,7 +40,7 @@ class AccountControllerTest {
 
     @Test
     void testGetBalance() throws Exception {
-        BigDecimal balance = BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal balance = FORMATTED_TEN;
         ResponseDto response = new ResponseDto(balance);
         String expected = objectMapper.writeValueAsString(response);
         given(service.getUserBalance(1L)).willReturn(balance);
@@ -53,11 +53,11 @@ class AccountControllerTest {
 
     @Test
     void testPutMoney() throws Exception {
-        ResponseDto response = new ResponseDto(BigDecimal.ONE);
+        ResponseDto response = new ResponseDto(ONE);
         String expected = objectMapper.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(1L);
-        order.setAmount(BigDecimal.TEN);
+        order.setAmount(TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,11 +70,11 @@ class AccountControllerTest {
 
     @Test
     void testTakeMoney() throws Exception {
-        ResponseDto response = new ResponseDto(BigDecimal.ONE);
+        ResponseDto response = new ResponseDto(ONE);
         String expected = objectMapper.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(1L);
-        order.setAmount(BigDecimal.TEN);
+        order.setAmount(TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)

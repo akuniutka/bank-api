@@ -17,43 +17,37 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
     private static final Long EXISTING_USER_ID = 123456789L;
     private static final Long NON_EXISTING_USER_ID = 987654321L;
-    private static final String USER_ID_IS_NULL = "user id is null";
-    private static final String USER_NOT_FOUND = "user not found";
-    private static final String AMOUNT_IS_NULL = "amount is null";
-    private static final String AMOUNT_IS_ZERO = "amount is zero";
-    private static final String AMOUNT_IS_NEGATIVE = "amount is negative";
-    private static final String WRONG_MINOR_UNITS = "wrong minor units";
-    private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private Account account;
+    private List<Account> storedAccounts;
+    private List<Operation> storedOperations;
     @Mock
     private AccountRepository accountRepository;
     @Mock
     private OperationRepository operationRepository;
     @InjectMocks
     private AccountService service;
-    private final List<Account> storedAccounts = new ArrayList<>();
-    private final List<Operation> storedOperations = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
         account = new Account();
+        storedAccounts = new ArrayList<>();
+        storedOperations = new ArrayList<>();
         List<Account> accounts = new ArrayList<>();
-        List<Operation> operations = new ArrayList<>();
         accounts.add(account);
-        storedAccounts.clear();
-        storedOperations.clear();
+        List<Operation> operations = new ArrayList<>();
         Mockito.lenient().when(accountRepository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
         Mockito.lenient().when(accountRepository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
         Mockito.lenient().when(accountRepository.existsById(EXISTING_USER_ID)).thenReturn(true);
@@ -84,39 +78,34 @@ class AccountServiceTest {
 
     @Test
     void testAccountService() {
-        assertDoesNotThrow(() -> new AccountService(null, null));
+        assertDoesNotThrow(() -> new AccountService(accountRepository, operationRepository));
     }
 
     @Test
     void testGetUserBalanceWhenUserExists() {
-        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        BigDecimal actual = service.getUserBalance(EXISTING_USER_ID);
-        assertEquals(expected, actual);
+        assertEquals(FORMATTED_ZERO, service.getUserBalance(EXISTING_USER_ID));
     }
 
     @Test
     void testGetUserBalanceWhenUserDoesNotExist() {
-        Exception exception = assertThrows(UserNotFoundToGetBalanceException.class,
+        Exception e = assertThrows(UserNotFoundToGetBalanceException.class,
                 () -> service.getUserBalance(NON_EXISTING_USER_ID)
         );
-        assertEquals(USER_NOT_FOUND, exception.getMessage());
+        assertEquals(USER_NOT_FOUND, e.getMessage());
     }
 
     @Test
     void testGetUserBalanceWhenUserIdIsNull() {
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.getUserBalance(null)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        Exception e = assertThrows(BadRequestException.class, () -> service.getUserBalance(null));
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
-        BigDecimal amount = BigDecimal.TEN;
-        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
-        Date startDate = new Date();
-        service.increaseUserBalance(EXISTING_USER_ID, amount);
-        Date finishDate = new Date();
+        BigDecimal expected = FORMATTED_TEN;
+        Date start = new Date();
+        service.increaseUserBalance(EXISTING_USER_ID, TEN);
+        Date finish = new Date();
         assertEquals(expected, account.getBalance());
         assertEquals(1, storedOperations.size());
         Operation operation = storedOperations.get(0);
@@ -124,20 +113,15 @@ class AccountServiceTest {
         assertEquals(account, operation.getAccount());
         assertEquals(OperationType.DEPOSIT, operation.getType());
         assertEquals(expected, operation.getAmount());
-        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
-        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
+        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        BigDecimal expected = amount.setScale(2, RoundingMode.HALF_UP);
-        Date startDate = new Date();
-        service.increaseUserBalance(EXISTING_USER_ID, amount);
-        Date finishDate = new Date();
+        BigDecimal expected = FORMATTED_TEN_THOUSANDTHS;
+        Date start = new Date();
+        service.increaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
+        Date finish = new Date();
         assertEquals(expected, account.getBalance());
         assertEquals(1, storedOperations.size());
         Operation operation = storedOperations.get(0);
@@ -145,217 +129,170 @@ class AccountServiceTest {
         assertEquals(account, operation.getAccount());
         assertEquals(OperationType.DEPOSIT, operation.getType());
         assertEquals(expected, operation.getAmount());
-        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
-        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
+        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.increaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
         );
-        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        BigDecimal amount = BigDecimal.ZERO;
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.increaseUserBalance(EXISTING_USER_ID, ZERO)
         );
-        assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        BigDecimal amount = BigDecimal.TEN.negate();
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, amount)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.increaseUserBalance(EXISTING_USER_ID, MINUS_TEN)
         );
-        assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, null)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.increaseUserBalance(EXISTING_USER_ID, NULL)
         );
-        assertEquals(AMOUNT_IS_NULL, exception.getMessage());
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserDoesNotExist() {
-        BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(UserNotFoundException.class,
-                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, amount)
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, TEN)
         );
-        assertEquals(USER_NOT_FOUND, exception.getMessage());
+        assertEquals(USER_NOT_FOUND, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserIdIsNull() {
-        BigDecimal amount = BigDecimal.TEN;
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(null, amount)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(null, TEN));
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsLessThatBalance() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE;
-        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
-        account.increaseBalance(initialBalance);
-        Date startDate = new Date();
-        service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
-        Date finishDate = new Date();
-        assertEquals(expected, account.getBalance());
-        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
+        account.increaseBalance(TEN);
+        Date start = new Date();
+        service.decreaseUserBalance(EXISTING_USER_ID, ONE);
+        Date finish = new Date();
+        assertEquals(FORMATTED_NINE, account.getBalance());
         assertEquals(1, storedOperations.size());
         Operation operation = storedOperations.get(0);
         assertNull(operation.getId());
         assertEquals(account, operation.getAccount());
         assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(expected, operation.getAmount());
-        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
-        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
+        assertEquals(FORMATTED_ONE, operation.getAmount());
+        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsEqualToBalance() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.TEN;
-        BigDecimal expected = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        account.increaseBalance(initialBalance);
-        Date startDate = new Date();
-        service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
-        Date finishDate = new Date();
-        assertEquals(expected, account.getBalance());
-        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
+        account.increaseBalance(TEN);
+        Date start = new Date();
+        service.decreaseUserBalance(EXISTING_USER_ID, TEN);
+        Date finish = new Date();
+        assertEquals(FORMATTED_ZERO, account.getBalance());
         assertEquals(1, storedOperations.size());
         Operation operation = storedOperations.get(0);
         assertNull(operation.getId());
         assertEquals(account, operation.getAccount());
         assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(expected, operation.getAmount());
-        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
-        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
+        assertEquals(FORMATTED_TEN, operation.getAmount());
+        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        BigDecimal expected = initialBalance.subtract(amountWithdrawn).setScale(2, RoundingMode.HALF_UP);
-        account.increaseBalance(initialBalance);
-        Date startDate = new Date();
-        service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn);
-        Date finishDate = new Date();
+        BigDecimal expected = FORMATTED_TEN.subtract(FORMATTED_TEN_THOUSANDTHS);
+        account.increaseBalance(TEN);
+        Date start = new Date();
+        service.decreaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
+        Date finish = new Date();
         assertEquals(expected, account.getBalance());
-        expected = amountWithdrawn.setScale(2, RoundingMode.HALF_UP);
         assertEquals(1, storedOperations.size());
         Operation operation = storedOperations.get(0);
         assertNull(operation.getId());
         assertEquals(account, operation.getAccount());
         assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(expected, operation.getAmount());
-        assertTrue(startDate.compareTo(operation.getDate()) <= 0);
-        assertTrue(finishDate.compareTo(operation.getDate()) >= 0);
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
+        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
+        account.increaseBalance(TEN);
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
         );
-        assertEquals(WRONG_MINOR_UNITS, exception.getMessage());
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
-        BigDecimal amountWithdrawn = BigDecimal.ONE;
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
-        );
-        assertEquals(INSUFFICIENT_BALANCE, exception.getMessage());
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE));
+        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        BigDecimal amountWithdrawn = BigDecimal.ZERO;
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, ZERO)
         );
-        assertEquals(AMOUNT_IS_ZERO, exception.getMessage());
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE.negate();
-        account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, amountWithdrawn)
+        account.increaseBalance(TEN);
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, MINUS_ONE)
         );
-        assertEquals(AMOUNT_IS_NEGATIVE, exception.getMessage());
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, null)
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.decreaseUserBalance(EXISTING_USER_ID, NULL)
         );
-        assertEquals(AMOUNT_IS_NULL, exception.getMessage());
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserDoesNotExist() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE;
-        account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(UserNotFoundException.class,
-                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, amountWithdrawn)
+        account.increaseBalance(TEN);
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, ONE)
         );
-        assertEquals(USER_NOT_FOUND, exception.getMessage());
+        assertEquals(USER_NOT_FOUND, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserIdIsNull() {
-        BigDecimal initialBalance = BigDecimal.TEN;
-        BigDecimal amountWithdrawn = BigDecimal.ONE;
-        account.increaseBalance(initialBalance);
-        Exception exception = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(null, amountWithdrawn)
-        );
-        assertEquals(USER_ID_IS_NULL, exception.getMessage());
+        account.increaseBalance(TEN);
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(null, ONE));
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
         assertEquals(0, storedOperations.size());
     }
 
@@ -417,5 +354,12 @@ class AccountServiceTest {
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("argument is not of Iterable<Operation> type");
         }
+    }
+
+    private boolean isDateBetween(Date date, Date start, Date finish) {
+        if (date == null || start == null || finish == null) {
+            return false;
+        }
+        return start.compareTo(date) * date.compareTo(finish) >= 0;
     }
 }

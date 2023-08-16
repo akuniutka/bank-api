@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static dev.akuniutka.bank.api.Amount.*;
 
 class CashOrderDtoTest {
     @Test
@@ -29,7 +30,7 @@ class CashOrderDtoTest {
 
     @Test
     void setAmount() {
-        BigDecimal amount = BigDecimal.TEN;
+        BigDecimal amount = TEN;
         CashOrderDto order = new CashOrderDto();
         order.setAmount(amount);
         assertEquals(0, amount.compareTo(order.getAmount()));

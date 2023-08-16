@@ -10,20 +10,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+
+import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AccountControllerIT {
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
-    private static final String USER_ID_IS_NULL = "user id is null";
-    private static final String USER_NOT_FOUND = "user not found";
-    private static final String AMOUNT_IS_NULL = "amount is null";
-    private static final String AMOUNT_IS_ZERO = "amount is zero";
-    private static final String AMOUNT_IS_NEGATIVE = "amount is negative";
-    private static final String WRONG_MINOR_UNITS = "wrong minor units";
-    private static final String INSUFFICIENT_BALANCE = "insufficient balance";
     private static final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     private WebTestClient webTestClient;
@@ -31,8 +26,7 @@ class AccountControllerIT {
     @Test
     void testGetBalanceWhenUserExists() throws Exception {
         Long userId = 1003L;
-        BigDecimal result = BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP);
-        String expected = jsonResponseFrom(result);
+        String expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -46,7 +40,7 @@ class AccountControllerIT {
     @Test
     void testGetBalanceWhenUserDoesNotExist() throws Exception {
         Long userId = 0L;
-        String expected = jsonResponseFrom(BigDecimal.ONE.negate(), USER_NOT_FOUND);
+        String expected = jsonResponseFrom(MINUS_ONE, USER_NOT_FOUND);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -60,8 +54,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsPositive() throws Exception {
         Long userId = 1004L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.TEN);
-        String expected = jsonResponseFrom(BigDecimal.ONE);
+        CashOrderDto order = cashOrderFrom(userId, TEN);
+        String expected = jsonResponseFrom(ONE);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -72,8 +66,7 @@ class AccountControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        BigDecimal result = BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP);
-        expected = jsonResponseFrom(result);
+        expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -87,12 +80,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() throws Exception {
         Long userId = 1005L;
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        CashOrderDto order = cashOrderFrom(userId, amount);
-        String expected = jsonResponseFrom(BigDecimal.ONE);
+        CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
+        String expected = jsonResponseFrom(ONE);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -103,7 +92,7 @@ class AccountControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        expected = jsonResponseFrom(amount.setScale(2, RoundingMode.HALF_UP));
+        expected = jsonResponseFrom(FORMATTED_TEN_THOUSANDTHS);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -117,13 +106,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() throws Exception {
         Long userId = 1006L;
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        CashOrderDto order = cashOrderFrom(userId, amount);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, WRONG_MINOR_UNITS);
+        CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
+        String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -139,8 +123,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsZero() throws Exception {
         Long userId = 1007L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ZERO);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_ZERO);
+        CashOrderDto order = cashOrderFrom(userId, ZERO);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -156,8 +140,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsNegative() throws Exception {
         Long userId = 1008L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.TEN.negate());
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_NEGATIVE);
+        CashOrderDto order = cashOrderFrom(userId, MINUS_TEN);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -173,8 +157,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsNull() throws Exception {
         Long userId = 1009L;
-        CashOrderDto order = cashOrderFrom(userId, null);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_NULL);
+        CashOrderDto order = cashOrderFrom(userId, NULL);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -190,8 +174,8 @@ class AccountControllerIT {
     @Test
     void testPutMoneyWhenUserDoesNotExist() throws Exception {
         Long userId = 0L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.TEN);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, USER_NOT_FOUND);
+        CashOrderDto order = cashOrderFrom(userId, TEN);
+        String expected = jsonResponseFrom(ZERO, USER_NOT_FOUND);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -206,8 +190,8 @@ class AccountControllerIT {
 
     @Test
     void testPutMoneyWhenUserIdIsNull() throws Exception {
-        CashOrderDto order = cashOrderFrom(null, BigDecimal.TEN);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, USER_ID_IS_NULL);
+        CashOrderDto order = cashOrderFrom(null, TEN);
+        String expected = jsonResponseFrom(ZERO, USER_ID_IS_NULL);
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -223,8 +207,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsLessThatBalance() throws Exception {
         Long userId = 1010L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ONE);
-        String expected = jsonResponseFrom(BigDecimal.ONE);
+        CashOrderDto order = cashOrderFrom(userId, ONE);
+        String expected = jsonResponseFrom(ONE);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -235,7 +219,7 @@ class AccountControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        expected = jsonResponseFrom(BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP));
+        expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -249,8 +233,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsEqualToBalance() throws Exception {
         Long userId = 1011L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ONE);
-        String expected = jsonResponseFrom(BigDecimal.ONE);
+        CashOrderDto order = cashOrderFrom(userId, ONE);
+        String expected = jsonResponseFrom(ONE);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -261,7 +245,7 @@ class AccountControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        expected = jsonResponseFrom(BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP));
+        expected = jsonResponseFrom(FORMATTED_ZERO);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -275,12 +259,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() throws Exception {
         Long userId = 1012L;
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        CashOrderDto order = cashOrderFrom(userId, amount);
-        String expected = jsonResponseFrom(BigDecimal.ONE);
+        CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
+        String expected = jsonResponseFrom(ONE);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -291,7 +271,7 @@ class AccountControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        expected = jsonResponseFrom(BigDecimal.TEN.setScale(2, RoundingMode.HALF_UP));
+        expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
                 .uri(GET_BALANCE, userId)
@@ -305,13 +285,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() throws Exception {
         Long userId = 1013L;
-        BigDecimal amount = BigDecimal.ONE
-                .setScale(3, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP)
-                .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
-        CashOrderDto order = cashOrderFrom(userId, amount);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, WRONG_MINOR_UNITS);
+        CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
+        String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -327,8 +302,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsGreaterThanBalance() throws Exception {
         Long userId = 1014L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ONE);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, INSUFFICIENT_BALANCE);
+        CashOrderDto order = cashOrderFrom(userId, ONE);
+        String expected = jsonResponseFrom(ZERO, INSUFFICIENT_BALANCE);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -344,8 +319,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsZero() throws Exception {
         Long userId = 1015L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ZERO);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_ZERO);
+        CashOrderDto order = cashOrderFrom(userId, ZERO);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -361,8 +336,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsNegative() throws Exception {
         Long userId = 1016L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ONE.negate());
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_NEGATIVE);
+        CashOrderDto order = cashOrderFrom(userId, MINUS_ONE);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -378,8 +353,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsNull() throws Exception {
         Long userId = 1017L;
-        CashOrderDto order = cashOrderFrom(userId, null);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, AMOUNT_IS_NULL);
+        CashOrderDto order = cashOrderFrom(userId, NULL);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -395,8 +370,8 @@ class AccountControllerIT {
     @Test
     void testTakeMoneyWhenUserDoesNotExist() throws Exception {
         Long userId = 0L;
-        CashOrderDto order = cashOrderFrom(userId, BigDecimal.ONE);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, USER_NOT_FOUND);
+        CashOrderDto order = cashOrderFrom(userId, ONE);
+        String expected = jsonResponseFrom(ZERO, USER_NOT_FOUND);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -411,8 +386,8 @@ class AccountControllerIT {
 
     @Test
     void testTakeMoneyWhenUserIdIsNull() throws Exception {
-        CashOrderDto order = cashOrderFrom(null, BigDecimal.ONE);
-        String expected = jsonResponseFrom(BigDecimal.ZERO, USER_ID_IS_NULL);
+        CashOrderDto order = cashOrderFrom(null, ONE);
+        String expected = jsonResponseFrom(ZERO, USER_ID_IS_NULL);
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)

@@ -2,13 +2,15 @@ package dev.akuniutka.bank.api.dto;
 
 import java.math.BigDecimal;
 
+import dev.akuniutka.bank.api.entity.ErrorMessage;
+
 public class ResponseDto {
     private final BigDecimal result;
     private final String message;
 
     public ResponseDto(BigDecimal result, String message) {
         if (result == null) {
-            throw new IllegalArgumentException("response result is null");
+            throw new IllegalArgumentException(ErrorMessage.RESULT_IS_NULL);
         }
         this.result = result;
         this.message = message == null ? "" : message;

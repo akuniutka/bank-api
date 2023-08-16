@@ -9,9 +9,7 @@ class OperationTypeConverterTest {
     @Test
     void testConvertToDatabaseColumnWhenExistingValue() {
         OperationTypeConverter converter = new OperationTypeConverter();
-        assertEquals("D",
-                converter.convertToDatabaseColumn(OperationType.valueOf("DEPOSIT"))
-        );
+        assertEquals("D", converter.convertToDatabaseColumn(OperationType.valueOf("DEPOSIT")));
     }
 
     @Test
@@ -23,9 +21,7 @@ class OperationTypeConverterTest {
     @Test
     void testConvertToEntityAttributeWhenExistingValue() {
         OperationTypeConverter converter = new OperationTypeConverter();
-        assertSame(OperationType.valueOf("DEPOSIT"),
-                converter.convertToEntityAttribute("D")
-        );
+        assertSame(OperationType.valueOf("DEPOSIT"), converter.convertToEntityAttribute("D"));
     }
 
     @Test
@@ -37,8 +33,6 @@ class OperationTypeConverterTest {
     @Test
     void testConvertToEntityAttributeWhenNonExistingValue() {
         OperationTypeConverter converter = new OperationTypeConverter();
-        assertThrows(IllegalArgumentException.class,
-                () -> converter.convertToEntityAttribute("")
-        );
+        assertThrows(IllegalArgumentException.class, () -> converter.convertToEntityAttribute(""));
     }
 }

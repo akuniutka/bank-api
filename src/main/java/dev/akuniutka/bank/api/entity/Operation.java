@@ -1,5 +1,7 @@
 package dev.akuniutka.bank.api.entity;
 
+import dev.akuniutka.bank.api.exception.BackendErrorException;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -7,9 +9,6 @@ import java.util.Date;
 
 @Entity
 public class Operation {
-    private static final String ACCOUNT_IS_NULL = "account for operation is null";
-    private static final String OPERATION_TYPE_IS_NULL = "type of operation is null";
-    private static final String DATE_IS_NULL = "date is null";
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
@@ -19,6 +18,7 @@ public class Operation {
     @Column(nullable = false)
     private OperationType type;
     @Column(nullable = false)
+    @Access(AccessType.PROPERTY)
     private BigDecimal amount;
     @Column(nullable = false)
     private Date date;
@@ -29,7 +29,7 @@ public class Operation {
 
     public void setAccount(Account account) {
         if (account == null) {
-            throw new IllegalArgumentException(ACCOUNT_IS_NULL);
+            throw new BackendErrorException(ErrorMessage.ACCOUNT_IS_NULL);
         }
         this.account = account;
     }
@@ -40,7 +40,7 @@ public class Operation {
 
     public void setType(OperationType type) {
         if (type == null) {
-            throw new IllegalArgumentException(OPERATION_TYPE_IS_NULL);
+            throw new BackendErrorException(ErrorMessage.OPERATION_TYPE_IS_NULL);
         }
         this.type = type;
     }
@@ -50,7 +50,7 @@ public class Operation {
     }
 
     public void setAmount(BigDecimal amount) {
-        AmountValidator.assertUserInput(amount);
+        AmountValidator.assertAmount(amount);
         this.amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
 
@@ -60,7 +60,7 @@ public class Operation {
 
     public void setDate(Date date) {
         if (date == null) {
-            throw new IllegalArgumentException(DATE_IS_NULL);
+            throw new BackendErrorException(ErrorMessage.DATE_IS_NULL);
         }
         this.date = date;
     }
