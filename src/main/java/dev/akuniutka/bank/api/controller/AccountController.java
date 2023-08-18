@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 @RestController
 public class AccountController {
+    private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
     private final AccountService service;
 
     public AccountController(AccountService service) {
@@ -26,14 +27,13 @@ public class AccountController {
     @Operation(summary = "Put money to user's account")
     public ResponseDto putMoney(@RequestBody CashOrderDto order) {
         service.increaseUserBalance(order.getUserId(), order.getAmount());
-        return new ResponseDto(BigDecimal.ONE);
+        return OK;
     }
 
     @PutMapping("/takeMoney")
     @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
         service.decreaseUserBalance(order.getUserId(), order.getAmount());
-        return new ResponseDto(BigDecimal.ONE);
+        return OK;
     }
-
 }
