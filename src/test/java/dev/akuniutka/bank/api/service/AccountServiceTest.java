@@ -1,13 +1,10 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.entity.Operation;
-import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
-import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,11 +28,10 @@ class AccountServiceTest {
     private static final Long NON_EXISTING_USER_ID = 987654321L;
     private Account account;
     private List<Account> storedAccounts;
-    private List<Operation> storedOperations;
     @Mock
-    private AccountRepository accountRepository;
+    private AccountRepository repository;
     @Mock
-    private OperationRepository operationRepository;
+    private Operations operations;
     @InjectMocks
     private AccountService service;
 
@@ -44,41 +39,28 @@ class AccountServiceTest {
     void setUp() {
         account = new Account();
         storedAccounts = new ArrayList<>();
-        storedOperations = new ArrayList<>();
         List<Account> accounts = new ArrayList<>();
         accounts.add(account);
-        List<Operation> operations = new ArrayList<>();
-        Mockito.lenient().when(accountRepository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
-        Mockito.lenient().when(accountRepository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
-        Mockito.lenient().when(accountRepository.existsById(EXISTING_USER_ID)).thenReturn(true);
-        Mockito.lenient().when(accountRepository.existsById(NON_EXISTING_USER_ID)).thenReturn(false);
-        Mockito.lenient().when(accountRepository.save(Mockito.any(Account.class))).thenAnswer(
+        Mockito.lenient().when(repository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
+        Mockito.lenient().when(repository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
+        Mockito.lenient().when(repository.existsById(EXISTING_USER_ID)).thenReturn(true);
+        Mockito.lenient().when(repository.existsById(NON_EXISTING_USER_ID)).thenReturn(false);
+        Mockito.lenient().when(repository.save(Mockito.any(Account.class))).thenAnswer(
                 a -> storeAccount(a.getArguments()[0])
         );
-        Mockito.lenient().when(accountRepository.findAll()).thenReturn(accounts);
-        Mockito.lenient().when(accountRepository.findAllById(Mockito.anyIterable())).thenAnswer(
+        Mockito.lenient().when(repository.findAll()).thenReturn(accounts);
+        Mockito.lenient().when(repository.findAllById(Mockito.anyIterable())).thenAnswer(
                 a -> userIdsToAccounts(a.getArguments()[0])
         );
-        Mockito.lenient().when(accountRepository.saveAll(Mockito.anyIterable())).thenAnswer(
+        Mockito.lenient().when(repository.saveAll(Mockito.anyIterable())).thenAnswer(
                 a -> storeAllAccounts(a.getArguments()[0])
         );
-        Mockito.lenient().when(accountRepository.count()).thenReturn(1L);
-        Mockito.lenient().when(operationRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.empty());
-        Mockito.lenient().when(operationRepository.existsById(Mockito.any(Long.class))).thenReturn(false);
-        Mockito.lenient().when(operationRepository.save(Mockito.any(Operation.class))).thenAnswer(
-                a -> storeOperation(a.getArguments()[0])
-        );
-        Mockito.lenient().when(operationRepository.findAll()).thenReturn(operations);
-        Mockito.lenient().when(operationRepository.findAllById(Mockito.anyIterable())).thenReturn(operations);
-        Mockito.lenient().when(operationRepository.saveAll(Mockito.anyIterable())).thenAnswer(
-                a -> storeAllOperations(a.getArguments()[0])
-        );
-        Mockito.lenient().when(operationRepository.count()).thenReturn(0L);
+        Mockito.lenient().when(repository.count()).thenReturn(1L);
     }
 
     @Test
     void testAccountService() {
-        assertDoesNotThrow(() -> new AccountService(accountRepository, operationRepository));
+        assertDoesNotThrow(() -> new AccountService(repository, operations));
     }
 
     @Test
@@ -102,34 +84,14 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
-        BigDecimal expected = FORMATTED_TEN;
-        Date start = new Date();
         service.increaseUserBalance(EXISTING_USER_ID, TEN);
-        Date finish = new Date();
-        assertEquals(expected, account.getBalance());
-        assertEquals(1, storedOperations.size());
-        Operation operation = storedOperations.get(0);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.DEPOSIT, operation.getType());
-        assertEquals(expected, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(FORMATTED_TEN, account.getBalance());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        BigDecimal expected = FORMATTED_TEN_THOUSANDTHS;
-        Date start = new Date();
         service.increaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
-        Date finish = new Date();
-        assertEquals(expected, account.getBalance());
-        assertEquals(1, storedOperations.size());
-        Operation operation = storedOperations.get(0);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.DEPOSIT, operation.getType());
-        assertEquals(expected, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, account.getBalance());
     }
 
     @Test
@@ -138,7 +100,6 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -147,7 +108,6 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, ZERO)
         );
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -156,7 +116,6 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, MINUS_TEN)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -165,7 +124,6 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(EXISTING_USER_ID, NULL)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -174,63 +132,34 @@ class AccountServiceTest {
                 () -> service.increaseUserBalance(NON_EXISTING_USER_ID, TEN)
         );
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserIdIsNull() {
         Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsLessThatBalance() {
         account.increaseBalance(TEN);
-        Date start = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, ONE);
-        Date finish = new Date();
         assertEquals(FORMATTED_NINE, account.getBalance());
-        assertEquals(1, storedOperations.size());
-        Operation operation = storedOperations.get(0);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(FORMATTED_ONE, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsEqualToBalance() {
         account.increaseBalance(TEN);
-        Date start = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, TEN);
-        Date finish = new Date();
         assertEquals(FORMATTED_ZERO, account.getBalance());
-        assertEquals(1, storedOperations.size());
-        Operation operation = storedOperations.get(0);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(FORMATTED_TEN, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
         BigDecimal expected = FORMATTED_TEN.subtract(FORMATTED_TEN_THOUSANDTHS);
         account.increaseBalance(TEN);
-        Date start = new Date();
         service.decreaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
-        Date finish = new Date();
         assertEquals(expected, account.getBalance());
-        assertEquals(1, storedOperations.size());
-        Operation operation = storedOperations.get(0);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
     }
 
     @Test
@@ -240,14 +169,12 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -256,7 +183,6 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, ZERO)
         );
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -266,7 +192,6 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, MINUS_ONE)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -275,7 +200,6 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(EXISTING_USER_ID, NULL)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -285,7 +209,6 @@ class AccountServiceTest {
                 () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, ONE)
         );
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     @Test
@@ -293,7 +216,6 @@ class AccountServiceTest {
         account.increaseBalance(TEN);
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        assertEquals(0, storedOperations.size());
     }
 
     private List<Account> userIdsToAccounts(Object o) {
@@ -332,34 +254,5 @@ class AccountServiceTest {
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("argument is not of Iterable<Account> type");
         }
-    }
-
-    private Operation storeOperation(Object o) {
-        try {
-            Operation op = (Operation) o;
-            storedOperations.add(op);
-            return op;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("argument iis not of Operation type");
-        }
-    }
-
-    private List<Operation> storeAllOperations(Object o) {
-        try {
-            @SuppressWarnings("unchecked") Iterable<Operation> operations = (Iterable<Operation>) o;
-            for (Operation op : operations) {
-                storedOperations.add(op);
-            }
-            return storedOperations;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("argument is not of Iterable<Operation> type");
-        }
-    }
-
-    private boolean isDateBetween(Date date, Date start, Date finish) {
-        if (date == null || start == null || finish == null) {
-            return false;
-        }
-        return start.compareTo(date) * date.compareTo(finish) >= 0;
     }
 }
