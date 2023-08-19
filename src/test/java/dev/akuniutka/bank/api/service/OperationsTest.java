@@ -45,9 +45,13 @@ class OperationsTest {
         calendar.set(Calendar.MONTH, Calendar.APRIL);
         finish = calendar.getTime();
         operationList.add(new Operation());
-        operationList.get(0).setDate(start);
-        operationList.get(0).setType(OperationType.DEPOSIT);
-        operationList.get(0).setAmount(TEN);
+        operationList.get(0).setDate(finish);
+        operationList.get(0).setType(OperationType.WITHDRAWAL);
+        operationList.get(0).setAmount(ONE);
+        operationList.add(new Operation());
+        operationList.get(1).setDate(start);
+        operationList.get(1).setType(OperationType.DEPOSIT);
+        operationList.get(1).setAmount(TEN);
     }
 
     @BeforeEach
@@ -211,10 +215,14 @@ class OperationsTest {
     @Test
     void testGetListWhenUserExistsAndStartIsNullAndFinishIsNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccount(ACCOUNT)).thenReturn(operationList);
+        when(repository.findByAccount(ACCOUNT)).thenReturn(new ArrayList<>(operationList));
         List<OperationDto> dtoList = operations.getList(USER_ID, null, null);
-        assertEquals(1, dtoList.size());
+        assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
+        assertEquals(operationList.get(1).getDate(), dto.getDate());
+        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
+        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        dto = dtoList.get(1);
         assertEquals(operationList.get(0).getDate(), dto.getDate());
         assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
         assertEquals(operationList.get(0).getAmount(), dto.getAmount());
@@ -225,10 +233,14 @@ class OperationsTest {
     @Test
     void testGetListWhenUserExistsAndStartIsNotNullAndFinishIsNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateAfter(ACCOUNT, start)).thenReturn(operationList);
+        when(repository.findByAccountAndDateAfter(ACCOUNT, start)).thenReturn(new ArrayList<>(operationList));
         List<OperationDto> dtoList = operations.getList(USER_ID, start, null);
-        assertEquals(1, dtoList.size());
+        assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
+        assertEquals(operationList.get(1).getDate(), dto.getDate());
+        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
+        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        dto = dtoList.get(1);
         assertEquals(operationList.get(0).getDate(), dto.getDate());
         assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
         assertEquals(operationList.get(0).getAmount(), dto.getAmount());
@@ -239,10 +251,14 @@ class OperationsTest {
     @Test
     void testGetListWhenUserExistsAndStartIsNullAndFinishIsNotNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateBefore(ACCOUNT, finish)).thenReturn(operationList);
+        when(repository.findByAccountAndDateBefore(ACCOUNT, finish)).thenReturn(new ArrayList<>(operationList));
         List<OperationDto> dtoList = operations.getList(USER_ID, null, finish);
-        assertEquals(1, dtoList.size());
+        assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
+        assertEquals(operationList.get(1).getDate(), dto.getDate());
+        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
+        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        dto = dtoList.get(1);
         assertEquals(operationList.get(0).getDate(), dto.getDate());
         assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
         assertEquals(operationList.get(0).getAmount(), dto.getAmount());
@@ -253,10 +269,14 @@ class OperationsTest {
     @Test
     void testGetListWhenUserExistsAndStartIsNotNullAndFinishIsNotNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateBetween(ACCOUNT, start, finish)).thenReturn(operationList);
+        when(repository.findByAccountAndDateBetween(ACCOUNT, start, finish)).thenReturn(new ArrayList<>(operationList));
         List<OperationDto> dtoList = operations.getList(USER_ID, start, finish);
-        assertEquals(1, dtoList.size());
+        assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
+        assertEquals(operationList.get(1).getDate(), dto.getDate());
+        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
+        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        dto = dtoList.get(1);
         assertEquals(operationList.get(0).getDate(), dto.getDate());
         assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
         assertEquals(operationList.get(0).getAmount(), dto.getAmount());

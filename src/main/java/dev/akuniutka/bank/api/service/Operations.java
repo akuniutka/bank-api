@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -64,6 +65,7 @@ public class Operations {
         if (operations.isEmpty()) {
             throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }
+        operations.sort(Comparator.comparing(Operation::getDate));
         List<OperationDto> dtoList = new ArrayList<>();
         for (Operation operation : operations) {
             dtoList.add(new OperationDto(operation));
