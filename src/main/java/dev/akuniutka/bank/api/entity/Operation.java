@@ -60,10 +60,10 @@ public class Operation {
         if (date == null) {
             throw new IllegalArgumentException(ErrorMessage.DATE_IS_NULL);
         }
-        this.date = date;
+        this.date = (Date) date.clone();
     }
 
     public Date getDate() {
-        return date;
+        return date == null ? null : (Date) date.clone();
     }
 }

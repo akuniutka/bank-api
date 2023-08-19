@@ -17,4 +17,10 @@ class OperationTypeTest {
         assertEquals("D", OperationType.valueOf("DEPOSIT").getCode());
         assertEquals("W", OperationType.valueOf("WITHDRAWAL").getCode());
     }
+
+    @Test
+    void testGetDescription() {
+        assertEquals("deposit", OperationType.valueOf("DEPOSIT").getDescription());
+        assertEquals("withdrawal", OperationType.valueOf("WITHDRAWAL").getDescription());
+    }
 }
