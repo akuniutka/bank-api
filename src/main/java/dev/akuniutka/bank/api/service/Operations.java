@@ -11,6 +11,7 @@ import dev.akuniutka.bank.api.repository.AccountRepository;
 import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,6 +46,7 @@ public class Operations {
         repository.save(operation);
     }
 
+    @Transactional
     public List<OperationDto> getList(Long userId, Date start, Date finish) {
         List<Operation> operations;
         if (userId == null) {
