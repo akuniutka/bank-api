@@ -13,4 +13,5 @@ public class ErrorMessage {
     public static final String DATE_IS_NULL = "date is null";
     public static final String RESULT_IS_NULL = "response result is null";
     public static final String OPERATION_IS_NULL = "operation is null";
+    public static final String OPERATIONS_NOT_FOUND = "operations not found";
 }
