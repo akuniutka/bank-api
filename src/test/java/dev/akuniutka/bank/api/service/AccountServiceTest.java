@@ -5,75 +5,41 @@ import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
-    private static final Long EXISTING_USER_ID = 123456789L;
-    private static final Long NON_EXISTING_USER_ID = 987654321L;
+    private static final int MAX_MOCK_CALLS = 1;
+    private static final Long USER_ID = 1L;
     private Account account;
-    private List<Account> storedAccounts;
-    @Mock
     private AccountRepository repository;
-    @Mock
     private Operations operations;
-    @InjectMocks
     private AccountService service;
 
     @BeforeEach
     void setUp() {
+        repository = mock(AccountRepository.class);
+        operations = mock(Operations.class);
+        service = new AccountService(repository, operations);
         account = new Account();
-        storedAccounts = new ArrayList<>();
-        List<Account> accounts = new ArrayList<>();
-        accounts.add(account);
-        Mockito.lenient().when(repository.findById(EXISTING_USER_ID)).thenReturn(Optional.of(account));
-        Mockito.lenient().when(repository.findById(NON_EXISTING_USER_ID)).thenReturn(Optional.empty());
-        Mockito.lenient().when(repository.existsById(EXISTING_USER_ID)).thenReturn(true);
-        Mockito.lenient().when(repository.existsById(NON_EXISTING_USER_ID)).thenReturn(false);
-        Mockito.lenient().when(repository.save(Mockito.any(Account.class))).thenAnswer(
-                a -> storeAccount(a.getArguments()[0])
-        );
-        Mockito.lenient().when(repository.findAll()).thenReturn(accounts);
-        Mockito.lenient().when(repository.findAllById(Mockito.anyIterable())).thenAnswer(
-                a -> userIdsToAccounts(a.getArguments()[0])
-        );
-        Mockito.lenient().when(repository.saveAll(Mockito.anyIterable())).thenAnswer(
-                a -> storeAllAccounts(a.getArguments()[0])
-        );
-        Mockito.lenient().when(repository.count()).thenReturn(1L);
     }
 
-    @Test
-    void testAccountService() {
-        assertDoesNotThrow(() -> new AccountService(repository, operations));
-    }
-
-    @Test
-    void testGetUserBalanceWhenUserExists() {
-        assertEquals(FORMATTED_ZERO, service.getUserBalance(EXISTING_USER_ID));
-    }
-
-    @Test
-    void testGetUserBalanceWhenUserDoesNotExist() {
-        Exception e = assertThrows(UserNotFoundToGetBalanceException.class,
-                () -> service.getUserBalance(NON_EXISTING_USER_ID)
-        );
-        assertEquals(USER_NOT_FOUND, e.getMessage());
+    @AfterEach
+    public void tearDown() {
+        verifyNoMoreInteractions(ignoreStubs(repository));
+        verifyNoMoreInteractions(ignoreStubs(operations));
     }
 
     @Test
@@ -83,55 +49,18 @@ class AccountServiceTest {
     }
 
     @Test
-    void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
-        service.increaseUserBalance(EXISTING_USER_ID, TEN);
-        assertEquals(FORMATTED_TEN, account.getBalance());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        service.increaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, account.getBalance());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
-        );
-        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, ZERO)
-        );
-        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, MINUS_TEN)
-        );
-        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.increaseUserBalance(EXISTING_USER_ID, NULL)
-        );
-        assertEquals(AMOUNT_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testIncreaseUserBalanceWhenUserDoesNotExist() {
-        Exception e = assertThrows(UserNotFoundException.class,
-                () -> service.increaseUserBalance(NON_EXISTING_USER_ID, TEN)
-        );
+    void testGetUserBalanceWhenUserDoesNotExist() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
+        Exception e = assertThrows(UserNotFoundToGetBalanceException.class, () -> service.getUserBalance(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testGetUserBalanceWhenUserExists() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        assertEquals(FORMATTED_ZERO, service.getUserBalance(USER_ID));
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
@@ -141,74 +70,69 @@ class AccountServiceTest {
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsLessThatBalance() {
-        account.increaseBalance(TEN);
-        service.decreaseUserBalance(EXISTING_USER_ID, ONE);
-        assertEquals(FORMATTED_NINE, account.getBalance());
+    void testIncreaseUserBalanceWhenUserDoesNotExist() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.increaseUserBalance(USER_ID, TEN));
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsEqualToBalance() {
-        account.increaseBalance(TEN);
-        service.decreaseUserBalance(EXISTING_USER_ID, TEN);
-        assertEquals(FORMATTED_ZERO, account.getBalance());
+    void testIncreaseUserBalanceWhenUserExistsAndAmountIsNull() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, NULL));
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        BigDecimal expected = FORMATTED_TEN.subtract(FORMATTED_TEN_THOUSANDTHS);
-        account.increaseBalance(TEN);
-        service.decreaseUserBalance(EXISTING_USER_ID, TEN_THOUSANDTHS);
-        assertEquals(expected, account.getBalance());
+    void testIncreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, MINUS_TEN));
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
-        account.increaseBalance(TEN);
+    void testIncreaseUserBalanceWhenUserExistsAndAmountIsZero() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, ZERO));
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
         Exception e = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE_THOUSANDTH)
+                () -> service.increaseUserBalance(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(EXISTING_USER_ID, ONE));
-        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
+    void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        when(repository.save(account)).thenReturn(account);
+        doNothing().when(operations).addDeposit(account, TEN);
+        service.increaseUserBalance(USER_ID, TEN);
+        assertEquals(FORMATTED_TEN, account.getBalance());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(operations, times(MAX_MOCK_CALLS)).addDeposit(account, TEN);
     }
 
     @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, ZERO)
-        );
-        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        account.increaseBalance(TEN);
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, MINUS_ONE)
-        );
-        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.decreaseUserBalance(EXISTING_USER_ID, NULL)
-        );
-        assertEquals(AMOUNT_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testDecreaseUserBalanceWhenUserDoesNotExist() {
-        account.increaseBalance(TEN);
-        Exception e = assertThrows(UserNotFoundException.class,
-                () -> service.decreaseUserBalance(NON_EXISTING_USER_ID, ONE)
-        );
-        assertEquals(USER_NOT_FOUND, e.getMessage());
+    void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        when(repository.save(account)).thenReturn(account);
+        doNothing().when(operations).addDeposit(account, TEN_THOUSANDTHS);
+        service.increaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, account.getBalance());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(operations, times(MAX_MOCK_CALLS)).addDeposit(account, TEN_THOUSANDTHS);
     }
 
     @Test
@@ -218,41 +142,95 @@ class AccountServiceTest {
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
-    private List<Account> userIdsToAccounts(Object o) {
-        try {
-            @SuppressWarnings("unchecked") Iterable<Long> userIds = (Iterable<Long>) o;
-            List<Account> accounts = new ArrayList<>();
-            for (Long currentId : userIds) {
-                if (EXISTING_USER_ID.equals(currentId)) {
-                    accounts.add(account);
-                    return accounts;
-                }
-            }
-            return accounts;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("argument is not of Iterable<Long> type");
-        }
+    @Test
+    void testDecreaseUserBalanceWhenUserDoesNotExist() {
+        account.increaseBalance(TEN);
+        when(repository.findById(USER_ID)).thenReturn(Optional.empty());
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
-    private Account storeAccount(Object o) {
-        try {
-            Account a = (Account) o;
-            storedAccounts.add(a);
-            return a;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("argument is not of Account type");
-        }
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsNull() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, NULL));
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
-    private List<Account> storeAllAccounts(Object o) {
-        try {
-            @SuppressWarnings("unchecked") Iterable<Account> accounts = (Iterable<Account>) o;
-            for (Account a : accounts) {
-                storedAccounts.add(a);
-            }
-            return storedAccounts;
-        } catch (ClassCastException e) {
-            throw new IllegalArgumentException("argument is not of Iterable<Account> type");
-        }
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, MINUS_ONE));
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsZero() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, ZERO));
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
+        account.increaseBalance(TEN);
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.decreaseUserBalance(USER_ID, ONE_THOUSANDTH)
+        );
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
+        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsLessThatBalance() {
+        account.increaseBalance(TEN);
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        when(repository.save(account)).thenReturn(account);
+        doNothing().when(operations).addWithdrawal(account, ONE);
+        service.decreaseUserBalance(USER_ID, ONE);
+        assertEquals(FORMATTED_NINE, account.getBalance());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(operations, times(MAX_MOCK_CALLS)).addWithdrawal(account, ONE);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndAmountIsEqualToBalance() {
+        account.increaseBalance(TEN);
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        when(repository.save(account)).thenReturn(account);
+        doNothing().when(operations).addWithdrawal(account, TEN);
+        service.decreaseUserBalance(USER_ID, TEN);
+        assertEquals(FORMATTED_ZERO, account.getBalance());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(operations, times(MAX_MOCK_CALLS)).addWithdrawal(account, TEN);
+    }
+
+    @Test
+    void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
+        BigDecimal expected = FORMATTED_TEN.subtract(FORMATTED_TEN_THOUSANDTHS);
+        account.increaseBalance(TEN);
+        when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
+        when(repository.save(account)).thenReturn(account);
+        doNothing().when(operations).addWithdrawal(account, TEN_THOUSANDTHS);
+        service.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        assertEquals(expected, account.getBalance());
+        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(operations, times(MAX_MOCK_CALLS)).addWithdrawal(account, TEN_THOUSANDTHS);
     }
 }
