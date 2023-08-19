@@ -14,7 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -24,7 +24,9 @@ import static dev.akuniutka.bank.api.Amount.*;
 
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
-    private static final String GET_BALANCE = "/getBalance";
+    private static final int MAX_MOCK_CALLS = 1;
+    private static final Long USER_ID = 1L;
+    private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
     @Autowired
@@ -43,12 +45,14 @@ class AccountControllerTest {
         BigDecimal balance = FORMATTED_TEN;
         ResponseDto response = new ResponseDto(balance);
         String expected = objectMapper.writeValueAsString(response);
-        given(service.getUserBalance(1L)).willReturn(balance);
-        mvc.perform(get(GET_BALANCE + "/1"))
+        when(service.getUserBalance(USER_ID)).thenReturn(balance);
+        mvc.perform(get(GET_BALANCE, USER_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
+        verify(service, times(MAX_MOCK_CALLS)).getUserBalance(USER_ID);
+        verifyNoMoreInteractions(ignoreStubs(service));
     }
 
     @Test
@@ -56,9 +60,10 @@ class AccountControllerTest {
         ResponseDto response = new ResponseDto(ONE);
         String expected = objectMapper.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
-        order.setUserId(1L);
+        order.setUserId(USER_ID);
         order.setAmount(TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
+        doNothing().when(service).increaseUserBalance(USER_ID, TEN);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -66,6 +71,8 @@ class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
+        verify(service, times(MAX_MOCK_CALLS)).increaseUserBalance(USER_ID, TEN);
+        verifyNoMoreInteractions(ignoreStubs(service));
     }
 
     @Test
@@ -73,9 +80,10 @@ class AccountControllerTest {
         ResponseDto response = new ResponseDto(ONE);
         String expected = objectMapper.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
-        order.setUserId(1L);
-        order.setAmount(TEN);
+        order.setUserId(USER_ID);
+        order.setAmount(ONE);
         String jsonOrder = objectMapper.writeValueAsString(order);
+        doNothing().when(service).decreaseUserBalance(USER_ID, ONE);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -83,5 +91,7 @@ class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
+        verify(service, times(MAX_MOCK_CALLS)).decreaseUserBalance(USER_ID, ONE);
+        verifyNoMoreInteractions(ignoreStubs(service));
     }
 }
