@@ -2,18 +2,18 @@ package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
-import dev.akuniutka.bank.api.service.AccountService;
+import dev.akuniutka.bank.api.service.BalanceService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
 @RestController
-public class AccountController {
+public class BalanceController {
     private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
-    private final AccountService service;
+    private final BalanceService service;
 
-    public AccountController(AccountService service) {
+    public BalanceController(BalanceService service) {
         this.service = service;
     }
 

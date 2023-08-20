@@ -15,7 +15,7 @@ import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class AccountControllerIT {
+class BalanceControllerIT {
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";

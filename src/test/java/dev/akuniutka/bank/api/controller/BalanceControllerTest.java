@@ -3,7 +3,7 @@ package dev.akuniutka.bank.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
-import dev.akuniutka.bank.api.service.AccountService;
+import dev.akuniutka.bank.api.service.BalanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,8 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static dev.akuniutka.bank.api.Amount.*;
 
-@WebMvcTest(AccountController.class)
-class AccountControllerTest {
+@WebMvcTest(BalanceController.class)
+class BalanceControllerTest {
     private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
     private static final String GET_BALANCE = "/getBalance/{userId}";
@@ -32,12 +32,12 @@ class AccountControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private AccountService service;
+    private BalanceService service;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void testAccountController() {
-        assertDoesNotThrow(() -> new AccountController(null));
+    void testBalanceController() {
+        assertDoesNotThrow(() -> new BalanceController(null));
     }
 
     @Test

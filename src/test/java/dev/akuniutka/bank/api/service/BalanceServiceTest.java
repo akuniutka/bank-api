@@ -20,19 +20,19 @@ import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
-class AccountServiceTest {
+class BalanceServiceTest {
     private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
     private Account account;
     private AccountRepository repository;
     private Operations operations;
-    private AccountService service;
+    private BalanceService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(AccountRepository.class);
         operations = mock(Operations.class);
-        service = new AccountService(repository, operations);
+        service = new BalanceService(repository, operations);
         account = new Account();
     }
 

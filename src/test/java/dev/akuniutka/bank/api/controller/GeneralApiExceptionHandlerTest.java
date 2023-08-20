@@ -6,7 +6,7 @@ import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
-import dev.akuniutka.bank.api.service.AccountService;
+import dev.akuniutka.bank.api.service.BalanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
-@WebMvcTest(AccountController.class)
+@WebMvcTest(BalanceController.class)
 class GeneralApiExceptionHandlerTest {
     private static final String GET_BALANCE = "/getBalance";
     private static final String PUT_MONEY = "/putMoney";
@@ -32,7 +32,7 @@ class GeneralApiExceptionHandlerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private AccountService service;
+    private BalanceService service;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
