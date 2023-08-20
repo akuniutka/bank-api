@@ -31,8 +31,8 @@ class OperationServiceTest {
     private AccountRepository accounts;
     private Operation operation;
     private OperationRepository repository;
-    private OperationService operationService;
-    private static final List<Operation> operationList = new ArrayList<>();
+    private OperationService service;
+    private static final List<Operation> OPERATIONS = new ArrayList<>();
     private static Date start;
     private static Date finish;
 
@@ -44,14 +44,14 @@ class OperationServiceTest {
         start = calendar.getTime();
         calendar.set(Calendar.MONTH, Calendar.APRIL);
         finish = calendar.getTime();
-        operationList.add(new Operation());
-        operationList.get(0).setDate(finish);
-        operationList.get(0).setType(OperationType.WITHDRAWAL);
-        operationList.get(0).setAmount(ONE);
-        operationList.add(new Operation());
-        operationList.get(1).setDate(start);
-        operationList.get(1).setType(OperationType.DEPOSIT);
-        operationList.get(1).setAmount(TEN);
+        OPERATIONS.add(new Operation());
+        OPERATIONS.get(0).setDate(finish);
+        OPERATIONS.get(0).setType(OperationType.WITHDRAWAL);
+        OPERATIONS.get(0).setAmount(ONE);
+        OPERATIONS.add(new Operation());
+        OPERATIONS.get(1).setDate(start);
+        OPERATIONS.get(1).setType(OperationType.DEPOSIT);
+        OPERATIONS.get(1).setAmount(TEN);
     }
 
     @BeforeEach
@@ -59,7 +59,7 @@ class OperationServiceTest {
         accounts = mock(AccountRepository.class);
         operation = null;
         repository = mock(OperationRepository.class);
-        operationService = new OperationService(repository, accounts);
+        service = new OperationService(repository, accounts);
     }
 
     @AfterEach
@@ -70,32 +70,32 @@ class OperationServiceTest {
 
     @Test
     void testAddDepositWhenAccountIsNullAndAmountIsPositive() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> operationService.addDeposit(null, TEN));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> service.addDeposit(null, TEN));
         assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testAddDepositWhenAccountIsNotNullAndAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addDeposit(ACCOUNT, NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addDeposit(ACCOUNT, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testAddDepositWhenAccountIsNotNullAndAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addDeposit(ACCOUNT, MINUS_TEN));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addDeposit(ACCOUNT, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testAddDepositWhenAccountIsNotNullAndAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addDeposit(ACCOUNT, ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addDeposit(ACCOUNT, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testAddDepositWhenAccountIsNotNullAndScaleIsGreaterThanTwoAndWithNonZeros() {
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> operationService.addDeposit(ACCOUNT, ONE_THOUSANDTH)
+                () -> service.addDeposit(ACCOUNT, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
@@ -104,7 +104,7 @@ class OperationServiceTest {
     void testAddDepositWhenAccountIsNotNullAndAmountIsPositive() {
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        operationService.addDeposit(ACCOUNT, TEN);
+        service.addDeposit(ACCOUNT, TEN);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
@@ -118,7 +118,7 @@ class OperationServiceTest {
     void testAddDepositWhenAccountIsNotNullAndScaleIsGreaterThanTwoButWithZeros() {
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        operationService.addDeposit(ACCOUNT, TEN_THOUSANDTHS);
+        service.addDeposit(ACCOUNT, TEN_THOUSANDTHS);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
@@ -130,32 +130,32 @@ class OperationServiceTest {
 
     @Test
     void testAddWithdrawalWhenAccountIsNullAndAmountIsPositive() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> operationService.addWithdrawal(null, ONE));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> service.addWithdrawal(null, ONE));
         assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testAddWithdrawalWhenAccountIsNotNullAndAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addWithdrawal(ACCOUNT, NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addWithdrawal(ACCOUNT, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testAddWithdrawalWhenAccountIsNotNullAndAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addWithdrawal(ACCOUNT, MINUS_ONE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addWithdrawal(ACCOUNT, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testAddWithdrawalWhenAccountIsNotNullAndAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> operationService.addWithdrawal(ACCOUNT, ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.addWithdrawal(ACCOUNT, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testAddWithdrawalWhenAccountIsNotNullAndScaleIsGreaterThanTwoAndWithNonZeros() {
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> operationService.addWithdrawal(ACCOUNT, ONE_THOUSANDTH)
+                () -> service.addWithdrawal(ACCOUNT, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
@@ -164,7 +164,7 @@ class OperationServiceTest {
     void testAddWithdrawalWhenAccountIsNotNullAndAmountIsPositive() {
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        operationService.addWithdrawal(ACCOUNT, TEN);
+        service.addWithdrawal(ACCOUNT, TEN);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
@@ -178,7 +178,7 @@ class OperationServiceTest {
     void testAddWithdrawalWhenAccountIsNotNullAndScaleIsGreaterThanTwoButWithZeros() {
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        operationService.addWithdrawal(ACCOUNT, TEN_THOUSANDTHS);
+        service.addWithdrawal(ACCOUNT, TEN_THOUSANDTHS);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
@@ -189,97 +189,97 @@ class OperationServiceTest {
     }
 
     @Test
-    void testGetListWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> operationService.getList(null, start, finish));
+    void testGetOperationsWhenUserIdIsNull() {
+        Exception e = assertThrows(BadRequestException.class, () -> service.getOperations(null, start, finish));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
     @Test
-    void testGetListWhenUserNotFound() {
+    void testGetOperationsWhenUserNotFound() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.empty());
-        Exception e = assertThrows(UserNotFoundException.class, () -> operationService.getList(USER_ID, start, finish));
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.getOperations(USER_ID, start, finish));
         assertEquals(USER_NOT_FOUND, e.getMessage());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testGetListWhenOperationsNotFound() {
+    void testGetOperationsWhenOperationsNotFound() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
         when(repository.findByAccountAndDateBetween(ACCOUNT, start, finish)).thenReturn(new ArrayList<>());
-        Exception e = assertThrows(UserNotFoundException.class, () -> operationService.getList(USER_ID, start, finish));
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.getOperations(USER_ID, start, finish));
         assertEquals(OPERATIONS_NOT_FOUND, e.getMessage());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetween(ACCOUNT, start, finish);
     }
 
     @Test
-    void testGetListWhenUserExistsAndStartIsNullAndFinishIsNull() {
+    void testGetOperationsWhenUserExistsAndStartIsNullAndFinishIsNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccount(ACCOUNT)).thenReturn(new ArrayList<>(operationList));
-        List<OperationDto> dtoList = operationService.getList(USER_ID, null, null);
+        when(repository.findByAccount(ACCOUNT)).thenReturn(new ArrayList<>(OPERATIONS));
+        List<OperationDto> dtoList = service.getOperations(USER_ID, null, null);
         assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
-        assertEquals(operationList.get(1).getDate(), dto.getDate());
-        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         dto = dtoList.get(1);
-        assertEquals(operationList.get(0).getDate(), dto.getDate());
-        assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(0).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccount(ACCOUNT);
     }
 
     @Test
-    void testGetListWhenUserExistsAndStartIsNotNullAndFinishIsNull() {
+    void testGetOperationsWhenUserExistsAndStartIsNotNullAndFinishIsNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateAfter(ACCOUNT, start)).thenReturn(new ArrayList<>(operationList));
-        List<OperationDto> dtoList = operationService.getList(USER_ID, start, null);
+        when(repository.findByAccountAndDateAfter(ACCOUNT, start)).thenReturn(new ArrayList<>(OPERATIONS));
+        List<OperationDto> dtoList = service.getOperations(USER_ID, start, null);
         assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
-        assertEquals(operationList.get(1).getDate(), dto.getDate());
-        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         dto = dtoList.get(1);
-        assertEquals(operationList.get(0).getDate(), dto.getDate());
-        assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(0).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfter(ACCOUNT, start);
     }
 
     @Test
-    void testGetListWhenUserExistsAndStartIsNullAndFinishIsNotNull() {
+    void testGetOperationsWhenUserExistsAndStartIsNullAndFinishIsNotNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateBefore(ACCOUNT, finish)).thenReturn(new ArrayList<>(operationList));
-        List<OperationDto> dtoList = operationService.getList(USER_ID, null, finish);
+        when(repository.findByAccountAndDateBefore(ACCOUNT, finish)).thenReturn(new ArrayList<>(OPERATIONS));
+        List<OperationDto> dtoList = service.getOperations(USER_ID, null, finish);
         assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
-        assertEquals(operationList.get(1).getDate(), dto.getDate());
-        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         dto = dtoList.get(1);
-        assertEquals(operationList.get(0).getDate(), dto.getDate());
-        assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(0).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBefore(ACCOUNT, finish);
     }
 
     @Test
-    void testGetListWhenUserExistsAndStartIsNotNullAndFinishIsNotNull() {
+    void testGetOperationsWhenUserExistsAndStartIsNotNullAndFinishIsNotNull() {
         when(accounts.findById(USER_ID)).thenReturn(Optional.of(ACCOUNT));
-        when(repository.findByAccountAndDateBetween(ACCOUNT, start, finish)).thenReturn(new ArrayList<>(operationList));
-        List<OperationDto> dtoList = operationService.getList(USER_ID, start, finish);
+        when(repository.findByAccountAndDateBetween(ACCOUNT, start, finish)).thenReturn(new ArrayList<>(OPERATIONS));
+        List<OperationDto> dtoList = service.getOperations(USER_ID, start, finish);
         assertEquals(2, dtoList.size());
         OperationDto dto = dtoList.get(0);
-        assertEquals(operationList.get(1).getDate(), dto.getDate());
-        assertEquals(operationList.get(1).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(1).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         dto = dtoList.get(1);
-        assertEquals(operationList.get(0).getDate(), dto.getDate());
-        assertEquals(operationList.get(0).getType().getDescription(), dto.getType());
-        assertEquals(operationList.get(0).getAmount(), dto.getAmount());
+        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
         verify(accounts, times(MAX_MOCK_CALLS)).findById(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetween(ACCOUNT, start, finish);
     }

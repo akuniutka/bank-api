@@ -26,6 +26,6 @@ public class OperationController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
-        return operationService.getList(userId, dateFrom, dateTo);
+        return operationService.getOperations(userId, dateFrom, dateTo);
     }
 }

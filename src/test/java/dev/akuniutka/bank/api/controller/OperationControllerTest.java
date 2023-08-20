@@ -63,13 +63,13 @@ class OperationControllerTest {
         dtoList.add(new OperationDto(operation));
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         String expected = objectMapper.writeValueAsString(dtoList);
-        when(operationService.getList(USER_ID, start, finish)).thenReturn(dtoList);
+        when(operationService.getOperations(USER_ID, start, finish)).thenReturn(dtoList);
         mvc.perform(get(GET_OPERATION_LIST + query))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getList(USER_ID, start, finish);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(USER_ID, start, finish);
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 }

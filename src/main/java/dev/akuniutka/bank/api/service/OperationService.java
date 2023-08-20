@@ -47,7 +47,7 @@ public class OperationService {
     }
 
     @Transactional
-    public List<OperationDto> getList(Long userId, Date start, Date finish) {
+    public List<OperationDto> getOperations(Long userId, Date start, Date finish) {
         List<Operation> operations;
         if (userId == null) {
             throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
