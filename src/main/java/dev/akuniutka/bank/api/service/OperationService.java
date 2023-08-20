@@ -5,13 +5,10 @@ import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.ErrorMessage;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
-import dev.akuniutka.bank.api.repository.AccountRepository;
 import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -20,12 +17,12 @@ import java.util.List;
 
 @Service
 public class OperationService {
-    private final AccountRepository accounts;
+    private final AccountService accountService;
     private final OperationRepository repository;
 
-    public OperationService(OperationRepository repository, AccountRepository accounts) {
+    public OperationService(OperationRepository repository, AccountService accountService) {
         this.repository = repository;
-        this.accounts = accounts;
+        this.accountService = accountService;
     }
 
     public void addDeposit(Account account, BigDecimal amount) {
@@ -46,15 +43,9 @@ public class OperationService {
         repository.save(operation);
     }
 
-    @Transactional
     public List<OperationDto> getOperations(Long userId, Date start, Date finish) {
+        Account account = accountService.getAccount(userId);
         List<Operation> operations;
-        if (userId == null) {
-            throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
-        }
-        Account account = accounts.findById(userId).orElseThrow(
-                () -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND)
-        );
         if (start == null && finish == null) {
             operations = repository.findByAccount(account);
         } else if (finish == null) {
