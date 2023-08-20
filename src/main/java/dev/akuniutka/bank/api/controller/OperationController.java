@@ -5,6 +5,7 @@ import dev.akuniutka.bank.api.service.OperationService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,10 +21,10 @@ public class OperationController {
         this.operationService = operationService;
     }
 
-    @GetMapping("/getOperationList")
+    @GetMapping("/getOperationList/{userId}")
     @Operation(summary = "Get the list of operations for a selected user (all or foe specified period)")
     public List<OperationDto> getOperationList(
-            @RequestParam(required = false) Long userId,
+            @PathVariable Long userId,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
