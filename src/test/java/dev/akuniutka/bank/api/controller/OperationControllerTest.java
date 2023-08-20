@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import dev.akuniutka.bank.api.service.Operations;
+import dev.akuniutka.bank.api.service.OperationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -34,7 +34,7 @@ class OperationControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private Operations operations;
+    private OperationService operationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -63,13 +63,13 @@ class OperationControllerTest {
         dtoList.add(new OperationDto(operation));
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         String expected = objectMapper.writeValueAsString(dtoList);
-        when(operations.getList(USER_ID, start, finish)).thenReturn(dtoList);
+        when(operationService.getList(USER_ID, start, finish)).thenReturn(dtoList);
         mvc.perform(get(GET_OPERATION_LIST + query))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operations, times(MAX_MOCK_CALLS)).getList(USER_ID, start, finish);
-        verifyNoMoreInteractions(ignoreStubs(operations));
+        verify(operationService, times(MAX_MOCK_CALLS)).getList(USER_ID, start, finish);
+        verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 }

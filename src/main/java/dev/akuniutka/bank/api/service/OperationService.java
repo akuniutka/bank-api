@@ -19,11 +19,11 @@ import java.util.Date;
 import java.util.List;
 
 @Service
-public class Operations {
+public class OperationService {
     private final AccountRepository accounts;
     private final OperationRepository repository;
 
-    public Operations(OperationRepository repository, AccountRepository accounts) {
+    public OperationService(OperationRepository repository, AccountRepository accounts) {
         this.repository = repository;
         this.accounts = accounts;
     }

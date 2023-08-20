@@ -23,13 +23,13 @@ class BalanceServiceTest {
     private static final Long USER_ID = 1L;
     private Account account;
     private AccountService accountService;
-    private Operations operationService;
+    private OperationService operationService;
     private BalanceService service;
 
     @BeforeEach
     void setUp() {
         accountService = mock(AccountService.class);
-        operationService = mock(Operations.class);
+        operationService = mock(OperationService.class);
         service = new BalanceService(accountService, operationService);
         account = new Account();
     }

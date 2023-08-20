@@ -14,9 +14,9 @@ import java.math.BigDecimal;
 @Transactional
 public class BalanceService {
     private final AccountService accountService;
-    private final Operations operationService;
+    private final OperationService operationService;
 
-    public BalanceService(AccountService accountService, Operations operationService) {
+    public BalanceService(AccountService accountService, OperationService operationService) {
         this.accountService = accountService;
         this.operationService = operationService;
     }
