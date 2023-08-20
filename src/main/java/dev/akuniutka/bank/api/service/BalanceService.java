@@ -23,7 +23,7 @@ public class BalanceService {
 
     public BigDecimal getUserBalance(Long userId) {
         try {
-            Account account = accountService.get(userId);
+            Account account = accountService.getAccount(userId);
             return account.getBalance();
         } catch (UserNotFoundException e) {
             throw new UserNotFoundToGetBalanceException(e.getMessage());
@@ -31,24 +31,24 @@ public class BalanceService {
     }
 
     public void increaseUserBalance(Long userId, BigDecimal amount) {
-        Account account = accountService.get(userId);
+        Account account = accountService.getAccount(userId);
         try {
             account.increaseBalance(amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        account = accountService.save(account);
+        account = accountService.saveAccount(account);
         operationService.addDeposit(account, amount);
     }
 
     public void decreaseUserBalance(Long userId, BigDecimal amount) {
-        Account account = accountService.get(userId);
+        Account account = accountService.getAccount(userId);
         try {
             account.decreaseBalance(amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        account = accountService.save(account);
+        account = accountService.saveAccount(account);
         operationService.addWithdrawal(account, amount);
     }
 }

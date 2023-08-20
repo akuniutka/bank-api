@@ -18,14 +18,14 @@ public class AccountService {
         this.repository = repository;
     }
 
-    public Account get(Long userId) {
+    public Account getAccount(Long userId) {
         if (userId == null) {
             throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
         }
         return repository.findById(userId).orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
-    public Account save(Account account) {
+    public Account saveAccount(Account account) {
         return repository.save(account);
     }
 }

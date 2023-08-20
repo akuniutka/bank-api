@@ -32,32 +32,32 @@ class AccountServiceTest {
     }
 
     @Test
-    void testGetWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.get(null));
+    void testGetAccountWhenUserIdIsNull() {
+        Exception e = assertThrows(BadRequestException.class, () -> service.getAccount(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
     @Test
-    void testGetWhenUserDoesNotExist() {
+    void testGetAccountWhenUserDoesNotExist() {
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
-        Exception e = assertThrows(UserNotFoundException.class, () -> service.get(USER_ID));
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.getAccount(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
         verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testGetWhenUserExists() {
+    void testGetAccountWhenUserExists() {
         Account account = new Account();
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        assertEquals(account, service.get(USER_ID));
+        assertEquals(account, service.getAccount(USER_ID));
         verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
     }
 
     @Test
-    void testSave() {
+    void testSaveAccount() {
         Account account = new Account();
         when(repository.save(account)).thenReturn(account);
-        assertEquals(account, service.save(account));
+        assertEquals(account, service.saveAccount(account));
         verify(repository, times(MAX_MOCK_CALLS)).save(account);
     }
 }

@@ -42,183 +42,183 @@ class BalanceServiceTest {
 
     @Test
     void testGetUserBalanceWhenUserIdIsNull() {
-        when(accountService.get(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.getUserBalance(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(null);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
     }
 
     @Test
     void testGetUserBalanceWhenUserDoesNotExist() {
-        when(accountService.get(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundToGetBalanceException.class, () -> service.getUserBalance(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testGetUserBalanceWhenUserExists() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         assertEquals(FORMATTED_ZERO, service.getUserBalance(USER_ID));
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserIdIsNull() {
-        when(accountService.get(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(null);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserDoesNotExist() {
-        when(accountService.get(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.increaseUserBalance(USER_ID, TEN));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.increaseUserBalance(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndAmountIsPositive() {
-        when(accountService.get(USER_ID)).thenReturn(account);
-        when(accountService.save(account)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         doNothing().when(operationService).addDeposit(account, TEN);
         service.increaseUserBalance(USER_ID, TEN);
         assertEquals(FORMATTED_TEN, account.getBalance());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
-        verify(accountService, times(MAX_MOCK_CALLS)).save(account);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addDeposit(account, TEN);
     }
 
     @Test
     void testIncreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
-        when(accountService.get(USER_ID)).thenReturn(account);
-        when(accountService.save(account)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         doNothing().when(operationService).addDeposit(account, TEN_THOUSANDTHS);
         service.increaseUserBalance(USER_ID, TEN_THOUSANDTHS);
         assertEquals(FORMATTED_TEN_THOUSANDTHS, account.getBalance());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
-        verify(accountService, times(MAX_MOCK_CALLS)).save(account);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addDeposit(account, TEN_THOUSANDTHS);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserIdIsNull() {
-        when(accountService.get(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(null);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserDoesNotExist() {
-        when(accountService.get(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsNull() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsNegative() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsZero() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() {
         account.increaseBalance(TEN);
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.decreaseUserBalance(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsGreaterThanBalance() {
-        when(accountService.get(USER_ID)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsLessThatBalance() {
         account.increaseBalance(TEN);
-        when(accountService.get(USER_ID)).thenReturn(account);
-        when(accountService.save(account)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         doNothing().when(operationService).addWithdrawal(account, ONE);
         service.decreaseUserBalance(USER_ID, ONE);
         assertEquals(FORMATTED_NINE, account.getBalance());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
-        verify(accountService, times(MAX_MOCK_CALLS)).save(account);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addWithdrawal(account, ONE);
     }
 
     @Test
     void testDecreaseUserBalanceWhenUserExistsAndAmountIsEqualToBalance() {
         account.increaseBalance(TEN);
-        when(accountService.get(USER_ID)).thenReturn(account);
-        when(accountService.save(account)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         doNothing().when(operationService).addWithdrawal(account, TEN);
         service.decreaseUserBalance(USER_ID, TEN);
         assertEquals(FORMATTED_ZERO, account.getBalance());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
-        verify(accountService, times(MAX_MOCK_CALLS)).save(account);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addWithdrawal(account, TEN);
     }
 
@@ -226,13 +226,13 @@ class BalanceServiceTest {
     void testDecreaseUserBalanceWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() {
         BigDecimal expected = FORMATTED_TEN.subtract(FORMATTED_TEN_THOUSANDTHS);
         account.increaseBalance(TEN);
-        when(accountService.get(USER_ID)).thenReturn(account);
-        when(accountService.save(account)).thenReturn(account);
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         doNothing().when(operationService).addWithdrawal(account, TEN_THOUSANDTHS);
         service.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS);
         assertEquals(expected, account.getBalance());
-        verify(accountService, times(MAX_MOCK_CALLS)).get(USER_ID);
-        verify(accountService, times(MAX_MOCK_CALLS)).save(account);
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addWithdrawal(account, TEN_THOUSANDTHS);
     }
 }
