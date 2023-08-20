@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -26,6 +27,12 @@ public class OperationController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
-        return operationService.getOperations(userId, dateFrom, dateTo);
+        List<dev.akuniutka.bank.api.entity.Operation> operations;
+        operations = operationService.getOperations(userId, dateFrom, dateTo);
+        List<OperationDto> dtoList = new ArrayList<>();
+        for (dev.akuniutka.bank.api.entity.Operation operation : operations) {
+            dtoList.add(new OperationDto(operation));
+        }
+        return dtoList;
     }
 }

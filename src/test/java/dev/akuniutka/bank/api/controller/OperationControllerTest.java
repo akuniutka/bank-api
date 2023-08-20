@@ -6,6 +6,7 @@ import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.service.OperationService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -35,7 +36,32 @@ class OperationControllerTest {
     private MockMvc mvc;
     @MockBean
     private OperationService operationService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final List<Operation> OPERATIONS = new ArrayList<>();
+    private static final List<OperationDto> DTO_LIST = new ArrayList<>();
+    private static Date start;
+    private static Date finish;
+
+    @BeforeAll
+    static void init() {
+        OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(2022, Calendar.JANUARY, 1);
+        start = calendar.getTime();
+        calendar.set(Calendar.DAY_OF_MONTH, 31);
+        finish = calendar.getTime();
+        OPERATIONS.add(new Operation());
+        OPERATIONS.add(new Operation());
+        OPERATIONS.get(0).setDate(start);
+        OPERATIONS.get(0).setType(OperationType.DEPOSIT);
+        OPERATIONS.get(0).setAmount(TEN);
+        OPERATIONS.get(1).setDate(finish);
+        OPERATIONS.get(1).setType(OperationType.WITHDRAWAL);
+        OPERATIONS.get(1).setAmount(ONE);
+        DTO_LIST.add(new OperationDto(OPERATIONS.get(0)));
+        DTO_LIST.add(new OperationDto(OPERATIONS.get(1)));
+    }
 
     @Test
     void testOperationController() {
@@ -45,25 +71,8 @@ class OperationControllerTest {
     @Test
     void testGetOperationList() throws Exception {
         String query = "?userId=1&dateFrom=2022-01-01&dateTo=2022-01-31";
-        Calendar calendar = Calendar.getInstance();
-        calendar.clear();
-        calendar.set(2022, Calendar.JANUARY, 1);
-        Date start = calendar.getTime();
-        calendar.set(Calendar.DAY_OF_MONTH, 31);
-        Date finish = calendar.getTime();
-        List<OperationDto> dtoList = new ArrayList<>();
-        Operation operation = new Operation();
-        operation.setDate(start);
-        operation.setType(OperationType.DEPOSIT);
-        operation.setAmount(TEN);
-        dtoList.add(new OperationDto(operation));
-        operation.setDate(finish);
-        operation.setType(OperationType.WITHDRAWAL);
-        operation.setAmount(ONE);
-        dtoList.add(new OperationDto(operation));
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        String expected = objectMapper.writeValueAsString(dtoList);
-        when(operationService.getOperations(USER_ID, start, finish)).thenReturn(dtoList);
+        String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
+        when(operationService.getOperations(USER_ID, start, finish)).thenReturn(OPERATIONS);
         mvc.perform(get(GET_OPERATION_LIST + query))
                 .andDo(print())
                 .andExpect(status().isOk())

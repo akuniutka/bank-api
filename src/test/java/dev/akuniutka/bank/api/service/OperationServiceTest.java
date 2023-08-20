@@ -1,6 +1,5 @@
 package dev.akuniutka.bank.api.service;
 
-import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
@@ -217,16 +216,17 @@ class OperationServiceTest {
     void testGetOperationsWhenUserExistsAndStartIsNullAndFinishIsNull() {
         when(accountService.getAccount(USER_ID)).thenReturn(ACCOUNT);
         when(repository.findByAccountOrderByDate(ACCOUNT)).thenReturn(new ArrayList<>(OPERATIONS));
-        List<OperationDto> dtoList = service.getOperations(USER_ID, null, null);
-        assertEquals(2, dtoList.size());
-        OperationDto dto = dtoList.get(0);
-        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
-        dto = dtoList.get(1);
-        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
+//        List<OperationDto> dtoList = service.getOperations(USER_ID, null, null);
+        assertEquals(OPERATIONS, service.getOperations(USER_ID, null, null));
+//        assertEquals(2, dtoList.size());
+//        OperationDto dto = dtoList.get(0);
+//        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
+//        dto = dtoList.get(1);
+//        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountOrderByDate(ACCOUNT);
     }
@@ -235,16 +235,17 @@ class OperationServiceTest {
     void testGetOperationsWhenUserExistsAndStartIsNotNullAndFinishIsNull() {
         when(accountService.getAccount(USER_ID)).thenReturn(ACCOUNT);
         when(repository.findByAccountAndDateAfterOrderByDate(ACCOUNT, start)).thenReturn(new ArrayList<>(OPERATIONS));
-        List<OperationDto> dtoList = service.getOperations(USER_ID, start, null);
-        assertEquals(2, dtoList.size());
-        OperationDto dto = dtoList.get(0);
-        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
-        dto = dtoList.get(1);
-        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
+//        List<OperationDto> dtoList = service.getOperations(USER_ID, start, null);
+        assertEquals(OPERATIONS, service.getOperations(USER_ID, start, null));
+//        assertEquals(2, dtoList.size());
+//        OperationDto dto = dtoList.get(0);
+//        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
+//        dto = dtoList.get(1);
+//        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfterOrderByDate(ACCOUNT, start);
     }
@@ -253,16 +254,17 @@ class OperationServiceTest {
     void testGetOperationsWhenUserExistsAndStartIsNullAndFinishIsNotNull() {
         when(accountService.getAccount(USER_ID)).thenReturn(ACCOUNT);
         when(repository.findByAccountAndDateBeforeOrderByDate(ACCOUNT, finish)).thenReturn(new ArrayList<>(OPERATIONS));
-        List<OperationDto> dtoList = service.getOperations(USER_ID, null, finish);
-        assertEquals(2, dtoList.size());
-        OperationDto dto = dtoList.get(0);
-        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
-        dto = dtoList.get(1);
-        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
+//        List<OperationDto> dtoList = service.getOperations(USER_ID, null, finish);
+        assertEquals(OPERATIONS, service.getOperations(USER_ID, null, finish));
+//        assertEquals(2, dtoList.size());
+//        OperationDto dto = dtoList.get(0);
+//        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
+//        dto = dtoList.get(1);
+//        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBeforeOrderByDate(ACCOUNT, finish);
     }
@@ -272,16 +274,17 @@ class OperationServiceTest {
         when(accountService.getAccount(USER_ID)).thenReturn(ACCOUNT);
         when(repository.findByAccountAndDateBetweenOrderByDate(ACCOUNT, start, finish))
                 .thenReturn(new ArrayList<>(OPERATIONS));
-        List<OperationDto> dtoList = service.getOperations(USER_ID, start, finish);
-        assertEquals(2, dtoList.size());
-        OperationDto dto = dtoList.get(0);
-        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
-        dto = dtoList.get(1);
-        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
-        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
-        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
+//        List<OperationDto> dtoList = service.getOperations(USER_ID, start, finish);
+        assertEquals(OPERATIONS, service.getOperations(USER_ID, start, finish));
+//        assertEquals(2, dtoList.size());
+//        OperationDto dto = dtoList.get(0);
+//        assertEquals(OPERATIONS.get(0).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(0).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(0).getAmount(), dto.getAmount());
+//        dto = dtoList.get(1);
+//        assertEquals(OPERATIONS.get(1).getDate(), dto.getDate());
+//        assertEquals(OPERATIONS.get(1).getType().getDescription(), dto.getType());
+//        assertEquals(OPERATIONS.get(1).getAmount(), dto.getAmount());
         verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetweenOrderByDate(ACCOUNT, start, finish);
     }

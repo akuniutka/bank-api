@@ -1,6 +1,5 @@
 package dev.akuniutka.bank.api.service;
 
-import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.ErrorMessage;
 import dev.akuniutka.bank.api.entity.Operation;
@@ -10,8 +9,6 @@ import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +40,7 @@ public class OperationService {
         repository.save(operation);
     }
 
-    public List<OperationDto> getOperations(Long userId, Date start, Date finish) {
+    public List<Operation> getOperations(Long userId, Date start, Date finish) {
         Account account = accountService.getAccount(userId);
         List<Operation> operations;
         if (start == null && finish == null) {
@@ -58,10 +55,6 @@ public class OperationService {
         if (operations.isEmpty()) {
             throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }
-        List<OperationDto> dtoList = new ArrayList<>();
-        for (Operation operation : operations) {
-            dtoList.add(new OperationDto(operation));
-        }
-        return dtoList;
+        return operations;
     }
 }
