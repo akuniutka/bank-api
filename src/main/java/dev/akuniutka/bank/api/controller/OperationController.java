@@ -15,10 +15,10 @@ import java.util.List;
 
 @RestController
 public class OperationController {
-    private final OperationService operationService;
+    private final OperationService service;
 
-    public OperationController(OperationService operationService) {
-        this.operationService = operationService;
+    public OperationController(OperationService service) {
+        this.service = service;
     }
 
     @GetMapping("/getOperationList/{userId}")
@@ -28,8 +28,7 @@ public class OperationController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
-        List<dev.akuniutka.bank.api.entity.Operation> operations;
-        operations = operationService.getOperations(userId, dateFrom, dateTo);
+        List<dev.akuniutka.bank.api.entity.Operation> operations = service.getOperations(userId, dateFrom, dateTo);
         List<OperationDto> dtoList = new ArrayList<>();
         for (dev.akuniutka.bank.api.entity.Operation operation : operations) {
             dtoList.add(new OperationDto(operation));
