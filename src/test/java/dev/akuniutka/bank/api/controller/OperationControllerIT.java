@@ -3,6 +3,7 @@ package dev.akuniutka.bank.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.OperationDto;
+import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,6 +18,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OperationControllerIT {
@@ -109,6 +111,36 @@ public class OperationControllerIT {
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenUserDoesNotExist() throws Exception {
+        Long userId = 0L;
+        ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        webTestClient
+                .get()
+                .uri(URI, userId)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenNoOperationsFound() throws Exception {
+        String uri = URI + "?dateFrom={dateFrom}&dateTo={dateTo}";
+        ResponseDto response = new ResponseDto(ZERO, OPERATIONS_NOT_FOUND);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        webTestClient
+                .get()
+                .uri(uri, USER_ID, "2022-01-01", "2021-01-01")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
     }
