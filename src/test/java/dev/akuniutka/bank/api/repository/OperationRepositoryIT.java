@@ -32,7 +32,7 @@ class OperationRepositoryIT {
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(2023, Calendar.JANUARY, 1);
-        List<Operation> operations = repository.findByAccount(account);
+        List<Operation> operations = repository.findByAccountOrderByDate(account);
         assertNotNull(operations);
         assertEquals(12, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));
@@ -58,7 +58,7 @@ class OperationRepositoryIT {
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(2023, Calendar.JULY, 1);
-        List<Operation> operations = repository.findByAccountAndDateBefore(account, calendar.getTime());
+        List<Operation> operations = repository.findByAccountAndDateBeforeOrderByDate(account, calendar.getTime());
         calendar.set(Calendar.MONTH, Calendar.JANUARY);
         assertNotNull(operations);
         assertEquals(6, operations.size());
@@ -85,7 +85,7 @@ class OperationRepositoryIT {
         Calendar calendar = Calendar.getInstance();
         calendar.clear();
         calendar.set(2023, Calendar.FEBRUARY, 1);
-        List<Operation> operations = repository.findByAccountAndDateAfter(account, calendar.getTime());
+        List<Operation> operations = repository.findByAccountAndDateAfterOrderByDate(account, calendar.getTime());
         assertNotNull(operations);
         assertEquals(11, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));
@@ -114,7 +114,7 @@ class OperationRepositoryIT {
         Date finish = calendar.getTime();
         calendar.set(Calendar.MONTH, Calendar.FEBRUARY);
         Date start = calendar.getTime();
-        List<Operation> operations = repository.findByAccountAndDateBetween(account, start, finish);
+        List<Operation> operations = repository.findByAccountAndDateBetweenOrderByDate(account, start, finish);
         assertNotNull(operations);
         assertEquals(2, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));

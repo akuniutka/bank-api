@@ -47,18 +47,17 @@ public class OperationService {
         Account account = accountService.getAccount(userId);
         List<Operation> operations;
         if (start == null && finish == null) {
-            operations = repository.findByAccount(account);
+            operations = repository.findByAccountOrderByDate(account);
         } else if (finish == null) {
-            operations = repository.findByAccountAndDateAfter(account, start);
+            operations = repository.findByAccountAndDateAfterOrderByDate(account, start);
         } else if (start == null) {
-            operations = repository.findByAccountAndDateBefore(account, finish);
+            operations = repository.findByAccountAndDateBeforeOrderByDate(account, finish);
         } else {
-            operations = repository.findByAccountAndDateBetween(account, start, finish);
+            operations = repository.findByAccountAndDateBetweenOrderByDate(account, start, finish);
         }
         if (operations.isEmpty()) {
             throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }
-        operations.sort(Comparator.comparing(Operation::getDate));
         List<OperationDto> dtoList = new ArrayList<>();
         for (Operation operation : operations) {
             dtoList.add(new OperationDto(operation));
