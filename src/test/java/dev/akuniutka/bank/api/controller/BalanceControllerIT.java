@@ -3,6 +3,7 @@ package dev.akuniutka.bank.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.entity.OperationType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,6 +11,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 
 import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
@@ -19,7 +26,9 @@ class BalanceControllerIT {
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
+    private static final String GET_OPERATIONS = "/getOperationList/{userId}?dateFrom={dateFrom}&dateTo={dateTo}";
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final SimpleDateFormat DATE_FROM_JSON = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     @Autowired
     private WebTestClient webTestClient;
 
@@ -56,6 +65,7 @@ class BalanceControllerIT {
         Long userId = 1004L;
         CashOrderDto order = cashOrderFrom(userId, TEN);
         String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -66,6 +76,7 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
@@ -75,6 +86,21 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        webTestClient
+                .get()
+                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.DEPOSIT.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(TEN.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
     }
 
     @Test
@@ -82,6 +108,7 @@ class BalanceControllerIT {
         Long userId = 1005L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
         webTestClient
                 .put()
                 .uri(PUT_MONEY)
@@ -92,6 +119,7 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN_THOUSANDTHS);
         webTestClient
                 .get()
@@ -101,6 +129,21 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        webTestClient
+                .get()
+                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.DEPOSIT.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN_THOUSANDTHS)
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
     }
 
     @Test
@@ -209,6 +252,7 @@ class BalanceControllerIT {
         Long userId = 1010L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -219,6 +263,7 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
@@ -228,6 +273,21 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        webTestClient
+                .get()
+                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.WITHDRAWAL.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(ONE.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
     }
 
     @Test
@@ -235,6 +295,7 @@ class BalanceControllerIT {
         Long userId = 1011L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -245,6 +306,7 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_ZERO);
         webTestClient
                 .get()
@@ -254,6 +316,21 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        webTestClient
+                .get()
+                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.WITHDRAWAL.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(ONE.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
     }
 
     @Test
@@ -261,6 +338,7 @@ class BalanceControllerIT {
         Long userId = 1012L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
         webTestClient
                 .put()
                 .uri(TAKE_MONEY)
@@ -271,6 +349,7 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
@@ -280,6 +359,21 @@ class BalanceControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        webTestClient
+                .get()
+                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.WITHDRAWAL.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN_THOUSANDTHS)
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
     }
 
     @Test
@@ -415,5 +509,18 @@ class BalanceControllerIT {
     private String jsonResponseFrom(BigDecimal result) throws Exception {
         ResponseDto response = new ResponseDto(result);
         return objectMapper.writeValueAsString(response);
+    }
+
+    private void isDateBetween(Object o, Date start, Date finish) {
+        try {
+            Date date = DATE_FROM_JSON.parse((String) o);
+            if (date == null || start == null || finish == null
+                    || start.compareTo(date) * date.compareTo(finish) < 0
+            ) {
+                throw new IllegalArgumentException("not between");
+            }
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("wrong date format");
+        }
     }
 }
