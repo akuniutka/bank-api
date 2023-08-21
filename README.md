@@ -4,6 +4,7 @@ A demo Spring Boot application which allows:
 - to get an account balance,
 - to deposit money to an account,
 - to withdraw money from an account,
+- to get an operations history for an account, 
 
 via REST API.
 
@@ -95,6 +96,44 @@ following JSON:
     }
 ```
 
+### /getOperationList/{userId}
+
+If a user with such `userId` exists, returns `200 OK` and a history 
+of user operations in the following JSON structure:
+```    
+    [
+        {
+            "date": "1970-01-01T08:00:00.000+00:00",
+            "type": "deposit",
+            "amount": 1000.00
+        },
+        ...
+    ]
+```
+If there is no user with such `userId`, returns `404 Not Found` and the following
+JSON:
+```
+    {
+        "result": 0,
+        "message": "user not found"
+    }
+```
+if there are no operations for the user with such `userId`, returns `404 Not Found` 
+with a similar JSON:
+```
+    {
+        "result": 0,
+        "message": "operations not found"
+    }
+```
+User's operation history may be filtered with request parameters `dateFrom` 
+and `dateTo` of `yyyy-MM-dd` format:
+```
+    /getOperationList/1001?dateFrom=1970-01-01&dateTo=1970-12-31
+```
+Operations, dates of which are equal to `dateFrom`, will be included. And operations 
+dated `dateTo` will be excluded. Either `dateFrom` or `dateTo` may be omitted.  
+
 ## Other Endpoints
 
 ### /actuator
@@ -115,8 +154,8 @@ A web-version is also available at `/swagger-ui/`.
 ## Configuration
 
 An application listens on port 8080, contains Flyway scripts to create 
-database structure and two test users with ids 1001 and 1002. Default 
-database connection parameters:
+database structure and three test users with ids 1001, 1002, and 1003. 
+Default database connection parameters:
 
 | Parameter | Value               |
 |-----------|---------------------|
@@ -130,9 +169,9 @@ All these parameters can be changed by adding `spring.datasource.url`,
 `spring.datasource.username` and `spring.datasource.password` to file 
 `db.properties` in the working directory.
 
-Database has to contain a sequence `HIBERNATE_SEQUENCE` and a table
-`ACCOUNT` of the following structure:
+Database has to contain a sequence `HIBERNATE_SEQUENCE` and tables
+`ACCOUNT` and `OPERATION` (see a database dump `dump.sql` in the 
+project directory):
 
 ![Database structure](db_structure.png)
 
-Or you can use a database dump `dump.sql` to create a database.
