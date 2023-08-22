@@ -2,7 +2,7 @@ package dev.akuniutka.bank.api.dto;
 
 import java.math.BigDecimal;
 
-import dev.akuniutka.bank.api.entity.ErrorMessage;
+import dev.akuniutka.bank.api.util.ErrorMessage;
 
 public class ResponseDto {
     private final BigDecimal result;

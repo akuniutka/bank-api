@@ -12,7 +12,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 class AccountServiceTest {
     private static final int MAX_MOCK_CALLS = 1;

@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

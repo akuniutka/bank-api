@@ -1,4 +1,4 @@
-package dev.akuniutka.bank.api.entity;
+package dev.akuniutka.bank.api.util;
 
 public class ErrorMessage {
     public final static String USER_ID_IS_NULL = "user id is null";

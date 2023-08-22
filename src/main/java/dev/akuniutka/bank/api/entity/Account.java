@@ -1,6 +1,8 @@
 package dev.akuniutka.bank.api.entity;
 
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.util.AmountValidator;
+import dev.akuniutka.bank.api.util.ErrorMessage;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

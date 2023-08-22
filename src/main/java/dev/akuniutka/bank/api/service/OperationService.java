@@ -1,7 +1,7 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.entity.ErrorMessage;
+import dev.akuniutka.bank.api.util.ErrorMessage;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;

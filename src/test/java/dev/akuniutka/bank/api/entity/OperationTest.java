@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 class OperationTest {

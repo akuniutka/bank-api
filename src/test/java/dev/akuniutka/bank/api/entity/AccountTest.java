@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.Amount.*;
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 class AccountTest {
     @Test

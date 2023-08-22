@@ -1,19 +1,19 @@
-package dev.akuniutka.bank.api.entity;
+package dev.akuniutka.bank.api.util;
 
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-class AmountValidator {
+public class AmountValidator {
     static final boolean ZERO_IS_ALLOWED = true;
     static final boolean ZERO_IS_NOT_ALLOWED = false;
 
-    static void assertBalance(BigDecimal amount) {
+    public static void assertBalance(BigDecimal amount) {
         assertAmount(amount, ZERO_IS_ALLOWED);
     }
 
-    static void assertAmount(BigDecimal amount) {
+    public static void assertAmount(BigDecimal amount) {
         assertAmount(amount, ZERO_IS_NOT_ALLOWED);
     }
 

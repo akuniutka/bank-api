@@ -5,7 +5,7 @@ import dev.akuniutka.bank.api.entity.Operation;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 public class OperationDto {
     private final Date date;

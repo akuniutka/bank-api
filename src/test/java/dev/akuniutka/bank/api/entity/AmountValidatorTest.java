@@ -1,12 +1,13 @@
 package dev.akuniutka.bank.api.entity;
 
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.util.AmountValidator;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.Amount.*;
 
 class AmountValidatorTest {
