@@ -77,5 +77,4 @@ class AmountValidatorTest {
         Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertAmount(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
-
 }

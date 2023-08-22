@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
+import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
@@ -259,12 +260,5 @@ class OperationServiceTest {
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("argument is not of Operation type");
         }
-    }
-
-    private boolean isDateBetween(Date date, Date start, Date finish) {
-        if (date == null || start == null || finish == null) {
-            return false;
-        }
-        return start.compareTo(date) * date.compareTo(finish) >= 0;
     }
 }

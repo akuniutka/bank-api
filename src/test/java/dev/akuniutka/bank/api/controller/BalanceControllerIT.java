@@ -12,14 +12,13 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
+import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BalanceControllerIT {
@@ -28,7 +27,6 @@ class BalanceControllerIT {
     private static final String TAKE_MONEY = "/takeMoney";
     private static final String GET_OPERATIONS = "/getOperationList/{userId}?dateFrom={dateFrom}&dateTo={dateTo}";
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final SimpleDateFormat DATE_FROM_JSON = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
     @Autowired
     private WebTestClient webTestClient;
 
@@ -509,18 +507,5 @@ class BalanceControllerIT {
     private String jsonResponseFrom(BigDecimal result) throws Exception {
         ResponseDto response = new ResponseDto(result);
         return objectMapper.writeValueAsString(response);
-    }
-
-    private void isDateBetween(Object o, Date start, Date finish) {
-        try {
-            Date date = DATE_FROM_JSON.parse((String) o);
-            if (date == null || start == null || finish == null
-                    || start.compareTo(date) * date.compareTo(finish) < 0
-            ) {
-                throw new IllegalArgumentException("not between");
-            }
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("wrong date format");
-        }
     }
 }
