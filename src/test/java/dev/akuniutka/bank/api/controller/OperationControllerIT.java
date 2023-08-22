@@ -23,7 +23,7 @@ import static dev.akuniutka.bank.api.entity.ErrorMessage.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OperationControllerIT {
     private static final String URI = "/getOperationList/{userId}";
-    private static final Long USER_ID = 1020L;
+    private static final Long USER_ID = 1070L;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final List<OperationDto> DTO_LIST = new ArrayList<>();
     @Autowired

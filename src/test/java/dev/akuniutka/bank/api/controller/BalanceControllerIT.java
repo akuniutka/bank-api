@@ -34,7 +34,7 @@ class BalanceControllerIT {
 
     @Test
     void testGetBalanceWhenUserExists() throws Exception {
-        Long userId = 1003L;
+        Long userId = 1053L;
         String expected = jsonResponseFrom(FORMATTED_TEN);
         webTestClient
                 .get()
@@ -62,7 +62,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsPositive() throws Exception {
-        Long userId = 1004L;
+        Long userId = 1054L;
         CashOrderDto order = cashOrderFrom(userId, TEN);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
@@ -105,7 +105,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() throws Exception {
-        Long userId = 1005L;
+        Long userId = 1055L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
@@ -148,7 +148,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() throws Exception {
-        Long userId = 1006L;
+        Long userId = 1056L;
         CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
         String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
         webTestClient
@@ -165,7 +165,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsZero() throws Exception {
-        Long userId = 1007L;
+        Long userId = 1057L;
         CashOrderDto order = cashOrderFrom(userId, ZERO);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
         webTestClient
@@ -182,7 +182,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsNegative() throws Exception {
-        Long userId = 1008L;
+        Long userId = 1058L;
         CashOrderDto order = cashOrderFrom(userId, MINUS_TEN);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
         webTestClient
@@ -199,7 +199,7 @@ class BalanceControllerIT {
 
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsNull() throws Exception {
-        Long userId = 1009L;
+        Long userId = 1059L;
         CashOrderDto order = cashOrderFrom(userId, NULL);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         webTestClient
@@ -249,7 +249,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsLessThatBalance() throws Exception {
-        Long userId = 1010L;
+        Long userId = 1060L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
@@ -292,7 +292,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsEqualToBalance() throws Exception {
-        Long userId = 1011L;
+        Long userId = 1061L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
@@ -335,7 +335,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndScaleIsGreaterThanTwoButWithZeros() throws Exception {
-        Long userId = 1012L;
+        Long userId = 1062L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
@@ -378,7 +378,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndScaleIsGreaterThanTwoAndWithNonZeros() throws Exception {
-        Long userId = 1013L;
+        Long userId = 1063L;
         CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
         String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
         webTestClient
@@ -395,7 +395,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsGreaterThanBalance() throws Exception {
-        Long userId = 1014L;
+        Long userId = 1064L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ZERO, INSUFFICIENT_BALANCE);
         webTestClient
@@ -412,7 +412,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsZero() throws Exception {
-        Long userId = 1015L;
+        Long userId = 1065L;
         CashOrderDto order = cashOrderFrom(userId, ZERO);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
         webTestClient
@@ -429,7 +429,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsNegative() throws Exception {
-        Long userId = 1016L;
+        Long userId = 1066L;
         CashOrderDto order = cashOrderFrom(userId, MINUS_ONE);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
         webTestClient
@@ -446,7 +446,7 @@ class BalanceControllerIT {
 
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsNull() throws Exception {
-        Long userId = 1017L;
+        Long userId = 1067L;
         CashOrderDto order = cashOrderFrom(userId, NULL);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         webTestClient

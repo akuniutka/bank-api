@@ -24,7 +24,7 @@ class OperationRepositoryIT {
 
     @BeforeEach
     public void setUp() {
-        account = accounts.findById(1019L).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
+        account = accounts.findById(1069L).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
     }
 
     @Test

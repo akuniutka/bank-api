@@ -16,7 +16,7 @@ class AccountRepositoryIT {
 
     @Test
     void testFindById() {
-        Long id = 1018L;
+        Long id = 1068L;
         Account account = repository.findById(id).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
         assertNotNull(account);
         assertEquals(id, account.getId());
