@@ -2,7 +2,9 @@ package dev.akuniutka.bank.api.entity;
 
 public enum OperationType {
     DEPOSIT("D", "deposit"),
-    WITHDRAWAL("W", "withdrawal");
+    WITHDRAWAL("W", "withdrawal"),
+    OUTGOING_TRANSFER("P", "outgoing transfer"),
+    INCOMING_TRANSFER("R", "incoming transfer");
 
     private final String code;
     private final String description;
