@@ -19,6 +19,7 @@ import java.util.List;
 
 import static dev.akuniutka.bank.api.util.Amount.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
+import static dev.akuniutka.bank.api.util.WebTestClientWrapper.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class OperationControllerIT {
@@ -53,11 +54,7 @@ public class OperationControllerIT {
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        webTestClient
-                .get()
-                .uri(URI, USER_ID)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, URI, USER_ID)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -69,11 +66,7 @@ public class OperationControllerIT {
         List<OperationDto> dtoList = new ArrayList<>(DTO_LIST);
         dtoList.remove(0);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        webTestClient
-                .get()
-                .uri(uri, USER_ID, "2023-02-01")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, uri, USER_ID, "2023-02-01")
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -87,11 +80,7 @@ public class OperationControllerIT {
             dtoList.add(DTO_LIST.get(i));
         }
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        webTestClient
-                .get()
-                .uri(uri, USER_ID, "2023-07-01")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, uri, USER_ID, "2023-07-01")
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -105,11 +94,7 @@ public class OperationControllerIT {
             dtoList.add(DTO_LIST.get(i));
         }
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        webTestClient
-                .get()
-                .uri(uri, USER_ID, "2023-02-01", "2023-07-01")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, uri, USER_ID, "2023-02-01", "2023-07-01")
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -120,11 +105,7 @@ public class OperationControllerIT {
         Long userId = 0L;
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        webTestClient
-                .get()
-                .uri(URI, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, URI, userId)
                 .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -135,11 +116,7 @@ public class OperationControllerIT {
         String uri = URI + "?dateFrom={dateFrom}&dateTo={dateTo}";
         ResponseDto response = new ResponseDto(ZERO, OPERATIONS_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        webTestClient
-                .get()
-                .uri(uri, USER_ID, "2022-01-01", "2021-01-01")
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, uri, USER_ID, "2022-01-01", "2021-01-01")
                 .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);

@@ -19,6 +19,7 @@ import java.util.Date;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
+import static dev.akuniutka.bank.api.util.WebTestClientWrapper.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BalanceControllerIT {
@@ -34,11 +35,7 @@ class BalanceControllerIT {
     void testGetBalanceWhenUserExists() throws Exception {
         Long userId = 1053L;
         String expected = jsonResponseFrom(FORMATTED_TEN);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -48,11 +45,7 @@ class BalanceControllerIT {
     void testGetBalanceWhenUserDoesNotExist() throws Exception {
         Long userId = 0L;
         String expected = jsonResponseFrom(MINUS_ONE, USER_NOT_FOUND);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -64,33 +57,19 @@ class BalanceControllerIT {
         CashOrderDto order = cashOrderFrom(userId, TEN);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        webTestClient
-                .get()
-                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -107,33 +86,19 @@ class BalanceControllerIT {
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN_THOUSANDTHS);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        webTestClient
-                .get()
-                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -149,13 +114,7 @@ class BalanceControllerIT {
         Long userId = 1056L;
         CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
         String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -166,13 +125,7 @@ class BalanceControllerIT {
         Long userId = 1057L;
         CashOrderDto order = cashOrderFrom(userId, ZERO);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -183,13 +136,7 @@ class BalanceControllerIT {
         Long userId = 1058L;
         CashOrderDto order = cashOrderFrom(userId, MINUS_TEN);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -200,13 +147,7 @@ class BalanceControllerIT {
         Long userId = 1059L;
         CashOrderDto order = cashOrderFrom(userId, NULL);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -217,13 +158,7 @@ class BalanceControllerIT {
         Long userId = 0L;
         CashOrderDto order = cashOrderFrom(userId, TEN);
         String expected = jsonResponseFrom(ZERO, USER_NOT_FOUND);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -233,13 +168,7 @@ class BalanceControllerIT {
     void testPutMoneyWhenUserIdIsNull() throws Exception {
         CashOrderDto order = cashOrderFrom(null, TEN);
         String expected = jsonResponseFrom(ZERO, USER_ID_IS_NULL);
-        webTestClient
-                .put()
-                .uri(PUT_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -251,33 +180,19 @@ class BalanceControllerIT {
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        webTestClient
-                .get()
-                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -294,33 +209,19 @@ class BalanceControllerIT {
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_ZERO);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        webTestClient
-                .get()
-                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -337,33 +238,19 @@ class BalanceControllerIT {
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
         Date start = new Date();
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         Date finish = new Date();
         expected = jsonResponseFrom(FORMATTED_TEN);
-        webTestClient
-                .get()
-                .uri(GET_BALANCE, userId)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
         LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        webTestClient
-                .get()
-                .uri(GET_OPERATIONS, userId, dateFrom, dateTo)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchange()
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -379,13 +266,7 @@ class BalanceControllerIT {
         Long userId = 1063L;
         CashOrderDto order = cashOrderFrom(userId, ONE_THOUSANDTH);
         String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -396,13 +277,7 @@ class BalanceControllerIT {
         Long userId = 1064L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ZERO, INSUFFICIENT_BALANCE);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -413,13 +288,7 @@ class BalanceControllerIT {
         Long userId = 1065L;
         CashOrderDto order = cashOrderFrom(userId, ZERO);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -430,13 +299,7 @@ class BalanceControllerIT {
         Long userId = 1066L;
         CashOrderDto order = cashOrderFrom(userId, MINUS_ONE);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -447,13 +310,7 @@ class BalanceControllerIT {
         Long userId = 1067L;
         CashOrderDto order = cashOrderFrom(userId, NULL);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -464,13 +321,7 @@ class BalanceControllerIT {
         Long userId = 0L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ZERO, USER_NOT_FOUND);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isNotFound()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
@@ -480,13 +331,7 @@ class BalanceControllerIT {
     void testTakeMoneyWhenUserIdIsNull() throws Exception {
         CashOrderDto order = cashOrderFrom(null, ONE);
         String expected = jsonResponseFrom(ZERO, USER_ID_IS_NULL);
-        webTestClient
-                .put()
-                .uri(TAKE_MONEY)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
-                .exchange()
+        put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
