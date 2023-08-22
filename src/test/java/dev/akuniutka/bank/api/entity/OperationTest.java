@@ -7,7 +7,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
-import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.util.Amount.*;
 
 class OperationTest {
     @Test

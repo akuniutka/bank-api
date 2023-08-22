@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
-import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.util.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
 class BalanceServiceTest {

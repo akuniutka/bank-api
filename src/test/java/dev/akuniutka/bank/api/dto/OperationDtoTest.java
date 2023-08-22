@@ -9,7 +9,7 @@ import java.util.Calendar;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
-import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.util.Amount.*;
 
 class OperationDtoTest {
     private static final Calendar CALENDAR = Calendar.getInstance();

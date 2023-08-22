@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
-import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.util.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class AccountRepositoryIT {

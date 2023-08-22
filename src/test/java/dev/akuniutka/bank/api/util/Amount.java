@@ -1,4 +1,4 @@
-package dev.akuniutka.bank.api;
+package dev.akuniutka.bank.api.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

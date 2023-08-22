@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
-import static dev.akuniutka.bank.api.Amount.*;
+import static dev.akuniutka.bank.api.util.Amount.*;
 
 @WebMvcTest({BalanceController.class, OperationController.class})
 class GeneralApiExceptionHandlerTest {
