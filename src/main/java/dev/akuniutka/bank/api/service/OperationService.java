@@ -57,4 +57,37 @@ public class OperationService {
         }
         return operations;
     }
+
+    public Operation createNewDeposit(Account account, BigDecimal amount) {
+        Operation operation = new Operation();
+        operation.setAccount(account);
+        operation.setType(OperationType.DEPOSIT);
+        operation.setAmount(amount);
+        operation.setDate(new Date());
+        return operation;
+    }
+
+    public Operation createNewWithdrawal(Account account, BigDecimal amount) {
+        Operation operation = new Operation();
+        operation.setAccount(account);
+        operation.setType(OperationType.WITHDRAWAL);
+        operation.setAmount(amount);
+        operation.setDate(new Date());
+        return operation;
+    }
+
+    public Operation saveOperation(Operation operation) {
+        if (operation == null) {
+            throw new IllegalArgumentException(ErrorMessage.OPERATION_IS_NULL);
+        }
+        return repository.save(operation);
+    }
+
+    public Operation saveOperationWithAllRelated(Operation operation) {
+        if (operation == null) {
+            throw new IllegalArgumentException(ErrorMessage.OPERATION_IS_NULL);
+        }
+        accountService.saveAccount(operation.getAccount());
+        return repository.save(operation);
+    }
 }

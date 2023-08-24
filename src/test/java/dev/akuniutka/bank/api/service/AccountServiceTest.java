@@ -54,7 +54,13 @@ class AccountServiceTest {
     }
 
     @Test
-    void testSaveAccount() {
+    void testSaveAccountWhenAccountIsNull() {
+        Exception e = assertThrows(BadRequestException.class, () -> service.saveAccount(null));
+        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testSaveAccountWhenAccountIsNotNull() {
         Account account = new Account();
         when(repository.save(account)).thenReturn(account);
         assertEquals(account, service.saveAccount(account));
