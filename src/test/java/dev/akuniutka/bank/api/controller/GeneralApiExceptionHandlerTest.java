@@ -92,7 +92,7 @@ class GeneralApiExceptionHandlerTest {
     void catchUserNotFoundExceptionWhenGetOperationList() throws Exception {
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = objectMapper.writeValueAsString(response);
-        given(operationService.getOperations(USER_ID, null, null))
+        given(operationService.getOperations0(USER_ID, null, null))
                 .willThrow(new UserNotFoundException(USER_NOT_FOUND));
         mvc.perform(get(GET_OPERATIONS, USER_ID))
                 .andDo(print())

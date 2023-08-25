@@ -71,13 +71,13 @@ class OperationControllerTest {
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations(USER_ID, null, null)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(operationService.getOperations0(USER_ID, null, null)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(URI, USER_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(USER_ID, null, null);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, null, null);
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 
@@ -85,13 +85,13 @@ class OperationControllerTest {
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNull() throws Exception {
         String uri = URI + "?dateFrom={dateFrom}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations(USER_ID, dateFrom, null)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(operationService.getOperations0(USER_ID, dateFrom, null)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-01"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(USER_ID, dateFrom, null);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, dateFrom, null);
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 
@@ -99,13 +99,13 @@ class OperationControllerTest {
     void testGetOperationListWhenDateFromIsNullAndDateToIsNotNull() throws Exception {
         String uri = URI + "?dateTo={dateTo}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations(USER_ID, null, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(operationService.getOperations0(USER_ID, null, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-31"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(USER_ID, null, dateTo);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, null, dateTo);
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 
@@ -113,13 +113,13 @@ class OperationControllerTest {
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNotNull() throws Exception {
         String uri = URI + "?dateFrom={dateFrom}&dateTo={dateTo}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations(USER_ID, dateFrom, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(operationService.getOperations0(USER_ID, dateFrom, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-01", "2022-01-31"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(USER_ID, dateFrom, dateTo);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, dateFrom, dateTo);
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
 }
