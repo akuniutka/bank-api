@@ -27,7 +27,7 @@ public class AccountService {
 
     public Account saveAccount(Account account) {
         if (account == null) {
-            throw new BadRequestException(ErrorMessage.ACCOUNT_IS_NULL);
+            throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);
         }
         return repository.save(account);
     }

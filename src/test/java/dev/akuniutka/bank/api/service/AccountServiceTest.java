@@ -47,23 +47,25 @@ class AccountServiceTest {
 
     @Test
     void testGetAccountWhenUserExists() {
-        Account account = new Account();
+        Account account = mock(Account.class);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
         assertEquals(account, service.getAccount(USER_ID));
         verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verifyNoMoreInteractions(ignoreStubs(account));
     }
 
     @Test
     void testSaveAccountWhenAccountIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.saveAccount(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> service.saveAccount(null));
         assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testSaveAccountWhenAccountIsNotNull() {
-        Account account = new Account();
+        Account account = mock(Account.class);
         when(repository.save(account)).thenReturn(account);
         assertEquals(account, service.saveAccount(account));
         verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verifyNoInteractions(ignoreStubs(account));
     }
 }
