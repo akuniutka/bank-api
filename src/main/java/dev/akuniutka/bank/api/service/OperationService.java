@@ -19,24 +19,6 @@ public class OperationService {
         this.repository = repository;
     }
 
-    public void addDeposit(Account account, BigDecimal amount) {
-        Operation operation = new Operation();
-        operation.setAccount(account);
-        operation.setType(OperationType.DEPOSIT);
-        operation.setAmount(amount);
-        operation.setDate(new Date());
-        repository.save(operation);
-    }
-
-    public void addWithdrawal(Account account, BigDecimal amount) {
-        Operation operation = new Operation();
-        operation.setAccount(account);
-        operation.setType(OperationType.WITHDRAWAL);
-        operation.setAmount(amount);
-        operation.setDate(new Date());
-        repository.save(operation);
-    }
-
     public Operation createDeposit(Account account, BigDecimal amount) {
         Operation operation = new Operation();
         operation.setAccount(account);
