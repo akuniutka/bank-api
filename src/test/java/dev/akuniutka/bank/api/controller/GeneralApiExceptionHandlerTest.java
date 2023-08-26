@@ -7,7 +7,6 @@ import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.BalanceService;
-import dev.akuniutka.bank.api.service.OperationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -36,8 +35,6 @@ class GeneralApiExceptionHandlerTest {
     private MockMvc mvc;
     @MockBean
     private BalanceService balanceService;
-    @MockBean
-    private OperationService operationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
@@ -92,7 +89,7 @@ class GeneralApiExceptionHandlerTest {
     void catchUserNotFoundExceptionWhenGetOperationList() throws Exception {
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = objectMapper.writeValueAsString(response);
-        given(operationService.getOperations0(USER_ID, null, null))
+        given(balanceService.getOperationList(USER_ID, null, null))
                 .willThrow(new UserNotFoundException(USER_NOT_FOUND));
         mvc.perform(get(GET_OPERATIONS, USER_ID))
                 .andDo(print())

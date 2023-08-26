@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import dev.akuniutka.bank.api.service.OperationService;
+import dev.akuniutka.bank.api.service.BalanceService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ class OperationControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private OperationService operationService;
+    private BalanceService balanceService;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final List<Operation> OPERATIONS = new ArrayList<>();
     private static final List<OperationDto> DTO_LIST = new ArrayList<>();
@@ -71,55 +71,56 @@ class OperationControllerTest {
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations0(USER_ID, null, null)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(balanceService.getOperationList(USER_ID, null, null))
+                .thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(URI, USER_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, null, null);
-        verifyNoMoreInteractions(ignoreStubs(operationService));
+        verify(balanceService, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, null, null);
+        verifyNoMoreInteractions(ignoreStubs(balanceService));
     }
 
     @Test
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNull() throws Exception {
         String uri = URI + "?dateFrom={dateFrom}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations0(USER_ID, dateFrom, null)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(balanceService.getOperationList(USER_ID, dateFrom, null)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-01"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, dateFrom, null);
-        verifyNoMoreInteractions(ignoreStubs(operationService));
+        verify(balanceService, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, dateFrom, null);
+        verifyNoMoreInteractions(ignoreStubs(balanceService));
     }
 
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNotNull() throws Exception {
         String uri = URI + "?dateTo={dateTo}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations0(USER_ID, null, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(balanceService.getOperationList(USER_ID, null, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-31"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, null, dateTo);
-        verifyNoMoreInteractions(ignoreStubs(operationService));
+        verify(balanceService, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, null, dateTo);
+        verifyNoMoreInteractions(ignoreStubs(balanceService));
     }
 
     @Test
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNotNull() throws Exception {
         String uri = URI + "?dateFrom={dateFrom}&dateTo={dateTo}";
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
-        when(operationService.getOperations0(USER_ID, dateFrom, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
+        when(balanceService.getOperationList(USER_ID, dateFrom, dateTo)).thenReturn(new ArrayList<>(OPERATIONS));
         mvc.perform(get(uri, USER_ID, "2022-01-01", "2022-01-31"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations0(USER_ID, dateFrom, dateTo);
-        verifyNoMoreInteractions(ignoreStubs(operationService));
+        verify(balanceService, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, dateFrom, dateTo);
+        verifyNoMoreInteractions(ignoreStubs(balanceService));
     }
 }

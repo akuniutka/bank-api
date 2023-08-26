@@ -89,10 +89,4 @@ public class OperationService {
         }
         return repository.save(operation);
     }
-
-    // TODO: do not forget to remove
-    public List<Operation> getOperations0(Long userId, Date dateFrom, Date dateTo) {
-        Account account = accountService.getAccount(userId);
-        return getOperations(account, dateFrom, dateTo);
-    }
 }

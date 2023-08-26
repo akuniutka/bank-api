@@ -1,6 +1,7 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
+import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
@@ -8,9 +9,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -21,21 +25,30 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 class BalanceServiceTest {
     private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
-    private Account account;
+    private static final Date DATE_FROM = mock(Date.class);
+    private static final Date DATE_TO = mock(Date.class);
+    private final Account account = new Account();
+    private Account account2;
+    @Mock
+    private List<Operation> operations;
     private AccountService accountService;
     private OperationService operationService;
     private BalanceService service;
 
     @BeforeEach
     void setUp() {
+        account2 = mock(Account.class);
         accountService = mock(AccountService.class);
         operationService = mock(OperationService.class);
         service = new BalanceService(accountService, operationService);
-        account = new Account();
     }
 
     @AfterEach
     public void tearDown() {
+        verifyNoMoreInteractions(ignoreStubs(DATE_FROM));
+        verifyNoMoreInteractions(ignoreStubs(DATE_TO));
+        verifyNoMoreInteractions(ignoreStubs(account2));
+        verifyNoMoreInteractions(ignoreStubs(operations));
         verifyNoMoreInteractions(ignoreStubs(accountService));
         verifyNoMoreInteractions(ignoreStubs(operationService));
     }
@@ -234,5 +247,34 @@ class BalanceServiceTest {
         verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
         verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
         verify(operationService, times(MAX_MOCK_CALLS)).addWithdrawal(account, TEN_THOUSANDTHS);
+    }
+
+    @Test
+    void testGetOperationListWhenUserIdIsNull() {
+        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.getOperationList(null, DATE_FROM, DATE_TO)
+        );
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
+    }
+
+    @Test
+    void testGetOperationListWhenUserNotFound() {
+        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.getOperationList(USER_ID, DATE_FROM, DATE_TO)
+        );
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+    }
+
+    @Test
+    void testGetOperationListWhenUserExists() {
+        when(accountService.getAccount(USER_ID)).thenReturn(account2);
+        when(operationService.getOperations(account2, DATE_FROM, DATE_TO)).thenReturn(operations);
+        assertEquals(operations, service.getOperationList(USER_ID, DATE_FROM, DATE_TO));
+        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(account2, DATE_FROM, DATE_TO);
     }
 }

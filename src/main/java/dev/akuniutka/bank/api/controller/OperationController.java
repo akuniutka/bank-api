@@ -2,7 +2,7 @@ package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
-import dev.akuniutka.bank.api.service.OperationService;
+import dev.akuniutka.bank.api.service.BalanceService;
 import dev.akuniutka.bank.api.util.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,9 +17,9 @@ import java.util.List;
 
 @RestController
 public class OperationController {
-    private final OperationService service;
+    private final BalanceService service;
 
-    public OperationController(OperationService service) {
+    public OperationController(BalanceService service) {
         this.service = service;
     }
 
@@ -30,7 +30,7 @@ public class OperationController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
-        List<dev.akuniutka.bank.api.entity.Operation> operations = service.getOperations0(userId, dateFrom, dateTo);
+        List<dev.akuniutka.bank.api.entity.Operation> operations = service.getOperationList(userId, dateFrom, dateTo);
         if (operations.isEmpty()) {
             throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }

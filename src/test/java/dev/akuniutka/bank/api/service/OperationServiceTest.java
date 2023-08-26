@@ -23,8 +23,8 @@ import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
     private static final int MAX_MOCK_CALLS = 1;
-    private static final Date DATE_FROM = new Date(0L);
-    private static final Date DATE_TO = new Date(1L);
+    private static final Date DATE_FROM = mock(Date.class);
+    private static final Date DATE_TO = mock(Date.class);
     private static final Account ACCOUNT = mock(Account.class);
     @Mock
     private static List<Operation> operations;
@@ -41,6 +41,8 @@ class OperationServiceTest {
 
     @AfterEach
     public void tearDown() {
+        verifyNoMoreInteractions(ignoreStubs(DATE_FROM));
+        verifyNoMoreInteractions(ignoreStubs(DATE_TO));
         verifyNoMoreInteractions(ignoreStubs(ACCOUNT));
         verifyNoMoreInteractions(ignoreStubs(operations));
         verifyNoMoreInteractions(ignoreStubs(repository));
