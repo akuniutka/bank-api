@@ -37,6 +37,24 @@ public class OperationService {
         return operation;
     }
 
+    public Operation createIncomingTransfer(Account account, BigDecimal amount, Date date) {
+        Operation operation = new Operation();
+        operation.setAccount(account);
+        operation.setType(OperationType.INCOMING_TRANSFER);
+        operation.setAmount(amount);
+        operation.setDate(date);
+        return operation;
+    }
+
+    public Operation createOutgoingTransfer(Account account, BigDecimal amount, Date date) {
+        Operation operation = new Operation();
+        operation.setAccount(account);
+        operation.setType(OperationType.OUTGOING_TRANSFER);
+        operation.setAmount(amount);
+        operation.setDate(date);
+        return operation;
+    }
+
     public List<Operation> getOperations(Account account, Date dateFrom, Date dateTo) {
         if (account == null) {
             throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);

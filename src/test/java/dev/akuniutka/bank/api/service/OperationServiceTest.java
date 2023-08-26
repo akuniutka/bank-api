@@ -163,6 +163,146 @@ class OperationServiceTest {
     }
 
     @Test
+    void testCreateIncomingTransferWhenAccountIsNull() {
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createIncomingTransfer(null, ONE, dateFrom)
+        );
+        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenDateIsNull() {
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createIncomingTransfer(account, ONE, null)
+        );
+        assertEquals(DATE_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenAmountIsNull() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createIncomingTransfer(account, NULL, dateFrom));
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenAmountIsNegative() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createIncomingTransfer(account, MINUS_ONE, dateFrom)
+        );
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenAmountIsZero() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createIncomingTransfer(account, ZERO, dateFrom));
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenScaleIsGreaterThanTwoWithNonZeros() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createIncomingTransfer(account, ONE_THOUSANDTH, dateFrom)
+        );
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenScaleIsGreaterThanTwoButWithZeros() {
+        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
+        Operation operation = service.createIncomingTransfer(account, TEN_THOUSANDTHS, dateFrom);
+        assertNotNull(operation);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.INCOMING_TRANSFER, operation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
+        assertEquals(dateFrom, operation.getDate());
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenAmountIsPositive() {
+        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
+        Operation operation = service.createIncomingTransfer(account, ONE, dateFrom);
+        assertNotNull(operation);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.INCOMING_TRANSFER, operation.getType());
+        assertEquals(FORMATTED_ONE, operation.getAmount());
+        assertEquals(dateFrom, operation.getDate());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenAccountIsNull() {
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createOutgoingTransfer(null, ONE, dateTo)
+        );
+        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenDateIsNull() {
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createOutgoingTransfer(account, ONE, null)
+        );
+        assertEquals(DATE_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenAmountIsNull() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createOutgoingTransfer(account, NULL, dateTo));
+        assertEquals(AMOUNT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenAmountIsNegative() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createOutgoingTransfer(account, MINUS_ONE, dateTo)
+        );
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenAmountIsZero() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createOutgoingTransfer(account, ZERO, dateTo));
+        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenScaleIsGreaterThanTwoWithNonZeros() {
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createOutgoingTransfer(account, ONE_THOUSANDTH, dateTo)
+        );
+        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenScaleIsGreaterThanTwoButWithZeros() {
+        lenient().when(dateTo.clone()).thenReturn(dateTo);
+        Operation operation = service.createOutgoingTransfer(account, TEN_THOUSANDTHS, dateTo);
+        assertNotNull(operation);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.OUTGOING_TRANSFER, operation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
+        assertEquals(dateTo, operation.getDate());
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenAmountIsPositive() {
+        lenient().when(dateTo.clone()).thenReturn(dateTo);
+        Operation operation = service.createOutgoingTransfer(account, ONE, dateTo);
+        assertNotNull(operation);
+        assertNull(operation.getId());
+        assertEquals(account, operation.getAccount());
+        assertEquals(OperationType.OUTGOING_TRANSFER, operation.getType());
+        assertEquals(FORMATTED_ONE, operation.getAmount());
+        assertEquals(dateTo, operation.getDate());
+    }
+
+    @Test
     void testGetOperationsWhenAccountIsNull() {
         Exception e = assertThrows(IllegalArgumentException.class,
                 () -> service.getOperations(null, dateFrom, dateTo)
