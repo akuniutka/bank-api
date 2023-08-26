@@ -9,7 +9,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
@@ -26,8 +25,7 @@ class OperationServiceTest {
     private static final Date DATE_FROM = mock(Date.class);
     private static final Date DATE_TO = mock(Date.class);
     private static final Account ACCOUNT = mock(Account.class);
-    @Mock
-    private static List<Operation> operations;
+    private static final List<Operation> OPERATIONS = spy(new ArrayList<>());
     private OperationRepository repository;
     private AccountService accountService;
     private OperationService service;
@@ -44,7 +42,7 @@ class OperationServiceTest {
         verifyNoMoreInteractions(ignoreStubs(DATE_FROM));
         verifyNoMoreInteractions(ignoreStubs(DATE_TO));
         verifyNoMoreInteractions(ignoreStubs(ACCOUNT));
-        verifyNoMoreInteractions(ignoreStubs(operations));
+        verifyNoMoreInteractions(ignoreStubs(OPERATIONS));
         verifyNoMoreInteractions(ignoreStubs(repository));
         verifyNoMoreInteractions(ignoreStubs(accountService));
     }
@@ -173,29 +171,29 @@ class OperationServiceTest {
 
     @Test
     void testGetOperationsWhenDateFromIsNullAndDateToIsNull() {
-        when(repository.findByAccountOrderByDate(ACCOUNT)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(ACCOUNT, null, null));
+        when(repository.findByAccountOrderByDate(ACCOUNT)).thenReturn(OPERATIONS);
+        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, null, null));
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountOrderByDate(ACCOUNT);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNull() {
-        when(repository.findByAccountAndDateAfterOrderByDate(ACCOUNT, DATE_FROM)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(ACCOUNT, DATE_FROM, null));
+        when(repository.findByAccountAndDateAfterOrderByDate(ACCOUNT, DATE_FROM)).thenReturn(OPERATIONS);
+        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, DATE_FROM, null));
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfterOrderByDate(ACCOUNT, DATE_FROM);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNullAndDateToIsNotNull() {
-        when(repository.findByAccountAndDateBeforeOrderByDate(ACCOUNT, DATE_TO)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(ACCOUNT, null, DATE_TO));
+        when(repository.findByAccountAndDateBeforeOrderByDate(ACCOUNT, DATE_TO)).thenReturn(OPERATIONS);
+        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, null, DATE_TO));
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBeforeOrderByDate(ACCOUNT, DATE_TO);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNotNull() {
-        when(repository.findByAccountAndDateBetweenOrderByDate(ACCOUNT, DATE_FROM, DATE_TO)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(ACCOUNT, DATE_FROM, DATE_TO));
+        when(repository.findByAccountAndDateBetweenOrderByDate(ACCOUNT, DATE_FROM, DATE_TO)).thenReturn(OPERATIONS);
+        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, DATE_FROM, DATE_TO));
         verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetweenOrderByDate(ACCOUNT, DATE_FROM, DATE_TO);
     }
 
