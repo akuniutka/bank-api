@@ -22,16 +22,20 @@ import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
     private static final int MAX_MOCK_CALLS = 1;
-    private static final Date DATE_FROM = mock(Date.class);
-    private static final Date DATE_TO = mock(Date.class);
-    private static final Account ACCOUNT = mock(Account.class);
-    private static final List<Operation> OPERATIONS = spy(new ArrayList<>());
+    private Date dateFrom;
+    private Date dateTo;
+    private Account account;
+    private List<Operation> operations;
     private OperationRepository repository;
     private AccountService accountService;
     private OperationService service;
 
     @BeforeEach
     public void setUp() {
+        dateFrom = mock(Date.class);
+        dateTo = mock(Date.class);
+        account = mock(Account.class);
+        operations = spy(new ArrayList<>());
         repository = mock(OperationRepository.class);
         accountService = mock(AccountService.class);
         service = new OperationService(repository, accountService);
@@ -39,10 +43,10 @@ class OperationServiceTest {
 
     @AfterEach
     public void tearDown() {
-        verifyNoMoreInteractions(ignoreStubs(DATE_FROM));
-        verifyNoMoreInteractions(ignoreStubs(DATE_TO));
-        verifyNoMoreInteractions(ignoreStubs(ACCOUNT));
-        verifyNoMoreInteractions(ignoreStubs(OPERATIONS));
+        verifyNoMoreInteractions(ignoreStubs(dateFrom));
+        verifyNoMoreInteractions(ignoreStubs(dateTo));
+        verifyNoMoreInteractions(ignoreStubs(account));
+        verifyNoMoreInteractions(ignoreStubs(operations));
         verifyNoMoreInteractions(ignoreStubs(repository));
         verifyNoMoreInteractions(ignoreStubs(accountService));
     }
@@ -55,36 +59,36 @@ class OperationServiceTest {
 
     @Test
     void testCreateDepositWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(ACCOUNT, NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testCreateDepositWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(ACCOUNT, MINUS_TEN));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testCreateDepositWhenAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(ACCOUNT, ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testCreateDepositWhenScaleIsGreaterThanTwoWithNonZeros() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(ACCOUNT, ONE_THOUSANDTH));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testCreateDepositWhenScaleIsGreaterThanTwoButWithZeros() {
         Date start = new Date();
-        Operation operation = service.createDeposit(ACCOUNT, TEN_THOUSANDTHS);
+        Operation operation = service.createDeposit(account, TEN_THOUSANDTHS);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
-        assertEquals(ACCOUNT, operation.getAccount());
+        assertEquals(account, operation.getAccount());
         assertEquals(OperationType.DEPOSIT, operation.getType());
         assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
         assertTrue(isDateBetween(operation.getDate(), start, finish));
@@ -93,11 +97,11 @@ class OperationServiceTest {
     @Test
     void testCreateDepositWhenAmountIsPositive() {
         Date start = new Date();
-        Operation operation = service.createDeposit(ACCOUNT, TEN);
+        Operation operation = service.createDeposit(account, TEN);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
-        assertEquals(ACCOUNT, operation.getAccount());
+        assertEquals(account, operation.getAccount());
         assertEquals(OperationType.DEPOSIT, operation.getType());
         assertEquals(FORMATTED_TEN, operation.getAmount());
         assertTrue(isDateBetween(operation.getDate(), start, finish));
@@ -111,26 +115,26 @@ class OperationServiceTest {
 
     @Test
     void testCreateWithdrawalWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(ACCOUNT, NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testCreateWithdrawalWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(ACCOUNT, MINUS_ONE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testCreateWithdrawalWhenAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(ACCOUNT, ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testCreateWithdrawalWhenScaleIsGreaterThanTwoWithNonZeros() {
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createWithdrawal(ACCOUNT, ONE_THOUSANDTH)
+                () -> service.createWithdrawal(account, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
@@ -138,11 +142,11 @@ class OperationServiceTest {
     @Test
     void testCreateWithdrawalWhenScaleIsGreaterThanTwoButWithZeros() {
         Date start = new Date();
-        Operation operation = service.createWithdrawal(ACCOUNT, TEN_THOUSANDTHS);
+        Operation operation = service.createWithdrawal(account, TEN_THOUSANDTHS);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
-        assertEquals(ACCOUNT, operation.getAccount());
+        assertEquals(account, operation.getAccount());
         assertEquals(OperationType.WITHDRAWAL, operation.getType());
         assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
         assertTrue(isDateBetween(operation.getDate(), start, finish));
@@ -151,11 +155,11 @@ class OperationServiceTest {
     @Test
     void testCreateWithdrawalWhenAmountIsPositive() {
         Date start = new Date();
-        Operation operation = service.createWithdrawal(ACCOUNT, ONE);
+        Operation operation = service.createWithdrawal(account, ONE);
         Date finish = new Date();
         assertNotNull(operation);
         assertNull(operation.getId());
-        assertEquals(ACCOUNT, operation.getAccount());
+        assertEquals(account, operation.getAccount());
         assertEquals(OperationType.WITHDRAWAL, operation.getType());
         assertEquals(FORMATTED_ONE, operation.getAmount());
         assertTrue(isDateBetween(operation.getDate(), start, finish));
@@ -164,37 +168,37 @@ class OperationServiceTest {
     @Test
     void testGetOperationsWhenAccountIsNull() {
         Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.getOperations(null, DATE_FROM, DATE_TO)
+                () -> service.getOperations(null, dateFrom, dateTo)
         );
         assertEquals(ACCOUNT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNullAndDateToIsNull() {
-        when(repository.findByAccountOrderByDate(ACCOUNT)).thenReturn(OPERATIONS);
-        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, null, null));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountOrderByDate(ACCOUNT);
+        when(repository.findByAccountOrderByDate(account)).thenReturn(operations);
+        assertEquals(operations, service.getOperations(account, null, null));
+        verify(repository, times(MAX_MOCK_CALLS)).findByAccountOrderByDate(account);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNull() {
-        when(repository.findByAccountAndDateAfterOrderByDate(ACCOUNT, DATE_FROM)).thenReturn(OPERATIONS);
-        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, DATE_FROM, null));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfterOrderByDate(ACCOUNT, DATE_FROM);
+        when(repository.findByAccountAndDateAfterOrderByDate(account, dateFrom)).thenReturn(operations);
+        assertEquals(operations, service.getOperations(account, dateFrom, null));
+        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfterOrderByDate(account, dateFrom);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNullAndDateToIsNotNull() {
-        when(repository.findByAccountAndDateBeforeOrderByDate(ACCOUNT, DATE_TO)).thenReturn(OPERATIONS);
-        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, null, DATE_TO));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBeforeOrderByDate(ACCOUNT, DATE_TO);
+        when(repository.findByAccountAndDateBeforeOrderByDate(account, dateTo)).thenReturn(operations);
+        assertEquals(operations, service.getOperations(account, null, dateTo));
+        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBeforeOrderByDate(account, dateTo);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNotNull() {
-        when(repository.findByAccountAndDateBetweenOrderByDate(ACCOUNT, DATE_FROM, DATE_TO)).thenReturn(OPERATIONS);
-        assertEquals(OPERATIONS, service.getOperations(ACCOUNT, DATE_FROM, DATE_TO));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetweenOrderByDate(ACCOUNT, DATE_FROM, DATE_TO);
+        when(repository.findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo)).thenReturn(operations);
+        assertEquals(operations, service.getOperations(account, dateFrom, dateTo));
+        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
     }
 
     @Test
@@ -221,10 +225,10 @@ class OperationServiceTest {
     @Test
     void testSaveOperationWithAllRelatedWhenOperationIsNotNull() {
         Operation operation = mock(Operation.class);
-        when(operation.getAccount()).thenReturn(ACCOUNT);
-        when(accountService.saveAccount(ACCOUNT)).thenReturn(ACCOUNT);
+        when(operation.getAccount()).thenReturn(account);
+        when(accountService.saveAccount(account)).thenReturn(account);
         when(repository.save(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(ACCOUNT);
+            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
             return a.getArguments()[0];
         });
         assertEquals(operation, service.saveOperationWithAllRelated(operation));
