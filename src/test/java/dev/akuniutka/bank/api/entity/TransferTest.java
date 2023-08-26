@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 class TransferTest {
-
     @Test
     void testGetId() {
         Transfer transfer = new Transfer();

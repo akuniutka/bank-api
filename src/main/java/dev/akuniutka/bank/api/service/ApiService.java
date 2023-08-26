@@ -15,11 +15,11 @@ import java.util.List;
 
 @Service
 @Transactional
-public class BalanceService {
+public class ApiService {
     private final AccountService accountService;
     private final OperationService operationService;
 
-    public BalanceService(AccountService accountService, OperationService operationService) {
+    public ApiService(AccountService accountService, OperationService operationService) {
         this.accountService = accountService;
         this.operationService = operationService;
     }

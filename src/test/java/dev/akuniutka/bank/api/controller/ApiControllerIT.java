@@ -1,9 +1,13 @@
 package dev.akuniutka.bank.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
+import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +18,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
@@ -22,14 +29,36 @@ import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 import static dev.akuniutka.bank.api.util.WebTestClientWrapper.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class BalanceControllerIT {
+class ApiControllerIT {
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
     private static final String GET_OPERATIONS = "/getOperationList/{userId}?dateFrom={dateFrom}&dateTo={dateTo}";
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final List<OperationDto> DTO_LIST = new ArrayList<>();
     @Autowired
     private WebTestClient webTestClient;
+
+    @BeforeAll
+    static void init() {
+        OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(2023, Calendar.JANUARY, 1);
+        for (int i = 0; i < 12; i++) {
+            Operation operation = new Operation();
+            if (i < 2) {
+                operation.setType(OperationType.DEPOSIT);
+                operation.setAmount(TEN);
+            } else {
+                operation.setType(OperationType.WITHDRAWAL);
+                operation.setAmount(ONE);
+            }
+            operation.setDate(calendar.getTime());
+            calendar.add(Calendar.MONTH, 1);
+            DTO_LIST.add(new OperationDto(operation));
+        }
+    }
 
     @Test
     void testGetBalanceWhenUserExists() throws Exception {
@@ -337,6 +366,78 @@ class BalanceControllerIT {
                 .expectBody().json(expected, true);
     }
 
+    @Test
+    void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
+        Long userId = 1070L;
+        String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
+        get(webTestClient, GET_OPERATIONS, userId, null, null)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenDateFromIsNotNullAndDateToIsNull() throws Exception {
+        Long userId = 1070L;
+        List<OperationDto> dtoList = new ArrayList<>(DTO_LIST);
+        dtoList.remove(0);
+        String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
+        get(webTestClient, GET_OPERATIONS, userId, "2023-02-01", null)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenDateFromIsNullAndDateToIsNotNull() throws Exception {
+        Long userId = 1070L;
+        List<OperationDto> dtoList = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            dtoList.add(DTO_LIST.get(i));
+        }
+        String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
+        get(webTestClient, GET_OPERATIONS, userId, null, "2023-07-01")
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenDateFromIsNotNullAndDateToIsNotNull() throws Exception {
+        Long userId = 1070L;
+        List<OperationDto> dtoList = new ArrayList<>();
+        for (int i = 1; i < 6; i++) {
+            dtoList.add(DTO_LIST.get(i));
+        }
+        String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
+        get(webTestClient, GET_OPERATIONS, userId, "2023-02-01", "2023-07-01")
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenUserDoesNotExist() throws Exception {
+        Long userId = 0L;
+        ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        get(webTestClient, GET_OPERATIONS, userId, null, null)
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testGetOperationListWhenNoOperationsFound() throws Exception {
+        Long userId = 1070L;
+        ResponseDto response = new ResponseDto(ZERO, OPERATIONS_NOT_FOUND);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        get(webTestClient, GET_OPERATIONS, userId, "2022-01-01", "2021-01-01")
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
     private CashOrderDto cashOrderFrom(Long userId, BigDecimal amount) {
         CashOrderDto order = new CashOrderDto();
         order.setUserId(userId);
@@ -346,11 +447,11 @@ class BalanceControllerIT {
 
     private String jsonResponseFrom(BigDecimal result, String message) throws Exception {
         ResponseDto response = new ResponseDto(result, message);
-        return objectMapper.writeValueAsString(response);
+        return OBJECT_MAPPER.writeValueAsString(response);
     }
 
     private String jsonResponseFrom(BigDecimal result) throws Exception {
         ResponseDto response = new ResponseDto(result);
-        return objectMapper.writeValueAsString(response);
+        return OBJECT_MAPPER.writeValueAsString(response);
     }
 }

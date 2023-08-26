@@ -22,7 +22,7 @@ import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
-class BalanceServiceTest {
+class ApiServiceTest {
     private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
     private Date dateFrom;
@@ -31,7 +31,7 @@ class BalanceServiceTest {
     private List<Operation> operations;
     private AccountService accountService;
     private OperationService operationService;
-    private BalanceService service;
+    private ApiService service;
 
     @BeforeEach
     void setUp() {
@@ -41,7 +41,7 @@ class BalanceServiceTest {
         operations = spy(new ArrayList<>());
         accountService = mock(AccountService.class);
         operationService = mock(OperationService.class);
-        service = new BalanceService(accountService, operationService);
+        service = new ApiService(accountService, operationService);
     }
 
     @AfterEach
