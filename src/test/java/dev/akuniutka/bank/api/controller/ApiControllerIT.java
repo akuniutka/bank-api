@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
+import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
@@ -34,6 +35,7 @@ class ApiControllerIT {
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
+    private static final String TRANSFER_MONEY = "/transferMoney";
     private static final String GET_OPERATIONS = "/getOperationList/{userId}?dateFrom={dateFrom}&dateTo={dateTo}";
     private static final List<OperationDto> DTO_LIST = new ArrayList<>();
     @Autowired
@@ -367,6 +369,243 @@ class ApiControllerIT {
     }
 
     @Test
+    void testTransferMoneyWhenUserIdIsNull() throws Exception {
+        Long receiverId = 1073L;
+        PaymentOrderDto order = paymentOrderFrom(null, receiverId, TEN);
+        String expected = jsonResponseFrom(ZERO, USER_ID_IS_NULL);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenReceiverIdIsNull() throws Exception {
+        Long userId = 1074L;
+        PaymentOrderDto order = paymentOrderFrom(userId, null, TEN);
+        String expected = jsonResponseFrom(ZERO, RECEIVER_ID_IS_NULL);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenUserNotFound() throws Exception {
+        Long userId = 0L;
+        Long receiverId = 1075L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
+        String expected = jsonResponseFrom(ZERO, USER_NOT_FOUND);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenReceiverNotFound() throws Exception {
+        Long userId = 1076L;
+        Long receiverId = 0L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
+        String expected = jsonResponseFrom(ZERO, RECEIVER_NOT_FOUND);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isNotFound()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenAmountIsNull() throws Exception {
+        Long userId = 1077L;
+        Long receiverId = 1078L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, NULL);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenAmountIsNegative() throws Exception {
+        Long userId = 1079L;
+        Long receiverId = 1080L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, MINUS_TEN);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NEGATIVE);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenAmountIsZero() throws Exception {
+        Long userId = 1081L;
+        Long receiverId = 1082L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, ZERO);
+        String expected = jsonResponseFrom(ZERO, AMOUNT_IS_ZERO);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenScaleIsGreaterThanTwoAndWithNonZeros() throws Exception {
+        Long userId = 1083L;
+        Long receiverId = 1084L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, ONE_THOUSANDTH);
+        String expected = jsonResponseFrom(ZERO, WRONG_MINOR_UNITS);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenBalanceIsNotSufficient() throws Exception {
+        Long userId = 1085L;
+        Long receiverId = 1086L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
+        String expected = jsonResponseFrom(ZERO, INSUFFICIENT_BALANCE);
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isBadRequest()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+    }
+
+    @Test
+    void testTransferMoneyWhenAmountIsLessThanBalance() throws Exception {
+        Long userId = 1087L;
+        Long receiverId = 1088L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
+        String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        Date finish = new Date();
+        expected = jsonResponseFrom(FORMATTED_TEN);
+        get(webTestClient, GET_BALANCE, userId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        get(webTestClient, GET_BALANCE, receiverId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.INCOMING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+    }
+
+    @Test
+    void testTransferMoneyWhenAmountIsEqualToBalance() throws Exception {
+        Long userId = 1089L;
+        Long receiverId = 1090L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
+        String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        Date finish = new Date();
+        expected = jsonResponseFrom(FORMATTED_ZERO);
+        get(webTestClient, GET_BALANCE, userId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        expected = jsonResponseFrom(FORMATTED_TEN);
+        get(webTestClient, GET_BALANCE, receiverId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.INCOMING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+    }
+
+    @Test
+    void testTransferMoneyWhenScaleIsGreaterThanTwoButWithZeros() throws Exception {
+        Long userId = 1091L;
+        Long receiverId = 1092L;
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN_THOUSANDTHS);
+        String expected = jsonResponseFrom(ONE);
+        Date start = new Date();
+        put(webTestClient, TRANSFER_MONEY, order)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        Date finish = new Date();
+        expected = jsonResponseFrom(FORMATTED_TEN);
+        get(webTestClient, GET_BALANCE, userId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        expected = jsonResponseFrom(FORMATTED_TEN_THOUSANDTHS);
+        get(webTestClient, GET_BALANCE, receiverId)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody().json(expected, true);
+        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
+        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN_THOUSANDTHS)
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
+                .expectBody()
+                .jsonPath("$.length()").isEqualTo(1)
+                .jsonPath("$[0].length()").isEqualTo(3)
+                .jsonPath("$[0].type").isEqualTo(OperationType.INCOMING_TRANSFER.getDescription())
+                .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN_THOUSANDTHS)
+                .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
+    }
+
+    @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
         Long userId = 1070L;
         String expected = OBJECT_MAPPER.writeValueAsString(DTO_LIST);
@@ -441,6 +680,14 @@ class ApiControllerIT {
     private CashOrderDto cashOrderFrom(Long userId, BigDecimal amount) {
         CashOrderDto order = new CashOrderDto();
         order.setUserId(userId);
+        order.setAmount(amount);
+        return order;
+    }
+
+    private PaymentOrderDto paymentOrderFrom(Long userId, Long receiverId, BigDecimal amount) {
+        PaymentOrderDto order = new PaymentOrderDto();
+        order.setUserId(userId);
+        order.setReceiverId(receiverId);
         order.setAmount(amount);
         return order;
     }

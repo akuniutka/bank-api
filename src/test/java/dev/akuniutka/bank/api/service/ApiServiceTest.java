@@ -358,7 +358,7 @@ class ApiServiceTest {
     @Test
     void testTransferMoneyWhenReceiverDoesNotExist() {
         when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenThrow(new UserNotFoundException(RECEIVER_NOT_FOUND));
+        when(accountService.getAccount(RECEIVER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, TEN)
         );

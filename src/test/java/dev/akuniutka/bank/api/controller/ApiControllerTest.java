@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
+import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
@@ -37,11 +38,12 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 @WebMvcTest(ApiController.class)
 class ApiControllerTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
+    private static final Long RECEIVER_ID = 2L;
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
+    private static final String TRANSFER_MONEY = "/transferMoney";
     private static final String GET_OPERATION_LIST = "/getOperationList/{userId}?dateFrom={dateFrom}&dateTo={dateTo}";
 
     @Autowired
@@ -75,7 +77,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getBalance(USER_ID);
+        verify(service).getBalance(USER_ID);
     }
 
     @Test
@@ -94,7 +96,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).putMoney(USER_ID, TEN);
+        verify(service).putMoney(USER_ID, TEN);
     }
 
     @Test
@@ -113,8 +115,29 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).takeMoney(USER_ID, ONE);
+        verify(service).takeMoney(USER_ID, ONE);
     }
+
+    @Test
+    void testTransferMoney() throws Exception {
+        ResponseDto response = new ResponseDto(ONE);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        PaymentOrderDto order = new PaymentOrderDto();
+        order.setUserId(USER_ID);
+        order.setReceiverId(RECEIVER_ID);
+        order.setAmount(TEN);
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        doNothing().when(service).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        mvc.perform(put(TRANSFER_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(service).transferMoney(USER_ID, RECEIVER_ID, TEN);
+    }
+
 
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {
@@ -127,7 +150,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, null, null);
+        verify(service).getOperationList(USER_ID, null, null);
     }
 
     @Test
@@ -143,7 +166,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, dateFrom, null);
+        verify(service).getOperationList(USER_ID, dateFrom, null);
     }
 
     @Test
@@ -159,7 +182,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, null, dateTo);
+        verify(service).getOperationList(USER_ID, null, dateTo);
     }
 
     @Test
@@ -177,7 +200,7 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, dateFrom, dateTo);
+        verify(service).getOperationList(USER_ID, dateFrom, dateTo);
     }
 
     private List<Operation> generateTestOperationList() {

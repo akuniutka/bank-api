@@ -1,6 +1,5 @@
 package dev.akuniutka.bank.api.util;
 
-import dev.akuniutka.bank.api.dto.CashOrderDto;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -13,13 +12,13 @@ public class WebTestClientWrapper {
                 .exchange();
     }
 
-    public static WebTestClient.ResponseSpec put(WebTestClient webTestClient, String uri, CashOrderDto order) {
+    public static WebTestClient.ResponseSpec put(WebTestClient webTestClient, String uri, Object obj) {
         return webTestClient
                 .put()
                 .uri(uri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
-                .bodyValue(order)
+                .bodyValue(obj)
                 .exchange();
     }
 }

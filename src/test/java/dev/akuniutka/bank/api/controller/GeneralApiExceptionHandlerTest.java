@@ -2,6 +2,7 @@ package dev.akuniutka.bank.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.akuniutka.bank.api.dto.CashOrderDto;
+import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
@@ -28,33 +29,34 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 @WebMvcTest({ApiController.class})
 class GeneralApiExceptionHandlerTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
+    private static final Long RECEIVER_ID = 2L;
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
+    private static final String TRANSFER_MONEY = "/transferMoney";
     private static final String GET_OPERATIONS = "/getOperationList/{userId}";
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private ApiService balanceService;
+    private ApiService apiService;
 
     @AfterEach
     public void tearDown() {
-        verifyNoMoreInteractions(ignoreStubs(balanceService));
+        verifyNoMoreInteractions(ignoreStubs(apiService));
     }
 
     @Test
     void catchUserNotFoundToGetBalanceException() throws Exception {
         ResponseDto response = new ResponseDto(MINUS_ONE, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        given(balanceService.getBalance(USER_ID)).willThrow(new UserNotFoundToGetBalanceException(USER_NOT_FOUND));
+        given(apiService.getBalance(USER_ID)).willThrow(new UserNotFoundToGetBalanceException(USER_NOT_FOUND));
         mvc.perform(get(GET_BALANCE, USER_ID))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).getBalance(USER_ID);
+        verify(apiService).getBalance(USER_ID);
     }
 
     @Test
@@ -65,7 +67,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(balanceService).putMoney(USER_ID, TEN);
+        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(apiService).putMoney(USER_ID, TEN);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -73,7 +75,7 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).putMoney(USER_ID, TEN);
+        verify(apiService).putMoney(USER_ID, TEN);
     }
 
     @Test
@@ -84,7 +86,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(balanceService).takeMoney(USER_ID, ONE);
+        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(apiService).takeMoney(USER_ID, ONE);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -92,21 +94,41 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).takeMoney(USER_ID, ONE);
+        verify(apiService).takeMoney(USER_ID, ONE);
+    }
+
+    @Test
+    void catchUserNotFoundExceptionWhenTransferMoney() throws Exception {
+        PaymentOrderDto order = new PaymentOrderDto();
+        order.setUserId(USER_ID);
+        order.setReceiverId(RECEIVER_ID);
+        order.setAmount(TEN);
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(apiService).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        mvc.perform(put(TRANSFER_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(apiService).transferMoney(USER_ID, RECEIVER_ID, TEN);
     }
 
     @Test
     void catchUserNotFoundExceptionWhenGetOperationList() throws Exception {
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        given(balanceService.getOperationList(USER_ID, null, null))
+        given(apiService.getOperationList(USER_ID, null, null))
                 .willThrow(new UserNotFoundException(USER_NOT_FOUND));
         mvc.perform(get(GET_OPERATIONS, USER_ID))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).getOperationList(USER_ID, null, null);
+        verify(apiService).getOperationList(USER_ID, null, null);
     }
 
     @Test
@@ -115,7 +137,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new BadRequestException(USER_ID_IS_NULL)).when(balanceService).putMoney(null, NULL);
+        doThrow(new BadRequestException(USER_ID_IS_NULL)).when(apiService).putMoney(null, NULL);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -123,7 +145,7 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).putMoney(null, NULL);
+        verify(apiService).putMoney(null, NULL);
     }
 
     @Test
@@ -132,7 +154,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new BadRequestException(USER_ID_IS_NULL)).when(balanceService).takeMoney(null, NULL);
+        doThrow(new BadRequestException(USER_ID_IS_NULL)).when(apiService).takeMoney(null, NULL);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -140,6 +162,24 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(balanceService, times(MAX_MOCK_CALLS)).takeMoney(null, NULL);
+        verify(apiService).takeMoney(null, NULL);
+    }
+
+    @Test
+    void catchBadRequestExceptionWhenTransferMoney() throws Exception {
+        PaymentOrderDto order = new PaymentOrderDto();
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        doThrow(new BadRequestException(USER_ID_IS_NULL))
+                .when(apiService).transferMoney(null, null, NULL);
+        mvc.perform(put(TRANSFER_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(apiService).transferMoney(null, null, NULL);
     }
 }

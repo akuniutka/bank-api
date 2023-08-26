@@ -2,6 +2,7 @@ package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
+import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.service.ApiService;
@@ -41,6 +42,13 @@ public class ApiController {
     @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
         service.takeMoney(order.getUserId(), order.getAmount());
+        return OK;
+    }
+
+    @PutMapping("/transferMoney")
+    @Operation(summary = "Transfer money from user's account to receiver's account")
+    public ResponseDto transferMoney(@RequestBody PaymentOrderDto order) {
+        service.transferMoney(order.getUserId(), order.getReceiverId(), order.getAmount());
         return OK;
     }
 

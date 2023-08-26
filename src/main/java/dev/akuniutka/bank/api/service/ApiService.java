@@ -77,7 +77,12 @@ public class ApiService {
             throw new BadRequestException(ErrorMessage.RECEIVER_ID_IS_NULL);
         }
         Account payer = accountService.getAccount(payerId);
-        Account payee = accountService.getAccount(payeeId);
+        Account payee;
+        try {
+            payee = accountService.getAccount(payeeId);
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
+        }
         Date date = new Date();
         try {
             payer.decreaseBalance(amount);
