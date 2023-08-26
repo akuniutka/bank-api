@@ -27,7 +27,6 @@ class OperationServiceTest {
     private Account account;
     private List<Operation> operations;
     private OperationRepository repository;
-    private AccountService accountService;
     private OperationService service;
 
     @BeforeEach
@@ -37,8 +36,7 @@ class OperationServiceTest {
         account = mock(Account.class);
         operations = spy(new ArrayList<>());
         repository = mock(OperationRepository.class);
-        accountService = mock(AccountService.class);
-        service = new OperationService(repository, accountService);
+        service = new OperationService(repository);
     }
 
     @AfterEach
@@ -48,7 +46,6 @@ class OperationServiceTest {
         verifyNoMoreInteractions(ignoreStubs(account));
         verifyNoMoreInteractions(ignoreStubs(operations));
         verifyNoMoreInteractions(ignoreStubs(repository));
-        verifyNoMoreInteractions(ignoreStubs(accountService));
     }
 
     @Test
@@ -213,27 +210,6 @@ class OperationServiceTest {
         when(repository.save(operation)).thenReturn(operation);
         assertEquals(operation, service.saveOperation(operation));
         verify(repository, times(MAX_MOCK_CALLS)).save(operation);
-        verifyNoMoreInteractions(ignoreStubs(operation));
-    }
-
-    @Test
-    void testSaveOperationWithAllRelatedWhenOperationIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> service.saveOperationWithAllRelated(null));
-        assertEquals(OPERATION_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testSaveOperationWithAllRelatedWhenOperationIsNotNull() {
-        Operation operation = mock(Operation.class);
-        when(operation.getAccount()).thenReturn(account);
-        when(accountService.saveAccount(account)).thenReturn(account);
-        when(repository.save(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
-            return a.getArguments()[0];
-        });
-        assertEquals(operation, service.saveOperationWithAllRelated(operation));
-        verify(repository, times(MAX_MOCK_CALLS)).save(operation);
-        verify(operation, times(MAX_MOCK_CALLS)).getAccount();
         verifyNoMoreInteractions(ignoreStubs(operation));
     }
 }

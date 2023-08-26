@@ -20,20 +20,20 @@ public class BalanceController {
     @GetMapping("/getBalance/{userId}")
     @Operation(summary = "Get the current balance for a selected user")
     public ResponseDto getBalance(@PathVariable Long userId) {
-        return new ResponseDto(service.getUserBalance(userId));
+        return new ResponseDto(service.getBalance(userId));
     }
 
     @PutMapping("/putMoney")
     @Operation(summary = "Put money to user's account")
     public ResponseDto putMoney(@RequestBody CashOrderDto order) {
-        service.increaseUserBalance(order.getUserId(), order.getAmount());
+        service.putMoney(order.getUserId(), order.getAmount());
         return OK;
     }
 
     @PutMapping("/takeMoney")
     @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
-        service.decreaseUserBalance(order.getUserId(), order.getAmount());
+        service.takeMoney(order.getUserId(), order.getAmount());
         return OK;
     }
 }

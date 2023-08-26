@@ -24,16 +24,16 @@ public class BalanceService {
         this.operationService = operationService;
     }
 
-    public BigDecimal getUserBalance(Long userId) {
+    public BigDecimal getBalance(Long userid) {
         try {
-            Account account = accountService.getAccount(userId);
+            Account account = accountService.getAccount(userid);
             return account.getBalance();
         } catch (UserNotFoundException e) {
             throw new UserNotFoundToGetBalanceException(e.getMessage());
         }
     }
 
-    public void increaseUserBalance(Long userId, BigDecimal amount) {
+    public void putMoney(Long userId, BigDecimal amount) {
         Account account = accountService.getAccount(userId);
         try {
             account.increaseBalance(amount);
@@ -41,10 +41,11 @@ public class BalanceService {
             throw new BadRequestException(e.getMessage());
         }
         account = accountService.saveAccount(account);
-        operationService.addDeposit(account, amount);
+        Operation operation = operationService.createDeposit(account, amount);
+        operationService.saveOperation(operation);
     }
 
-    public void decreaseUserBalance(Long userId, BigDecimal amount) {
+    public void takeMoney(Long userId, BigDecimal amount) {
         Account account = accountService.getAccount(userId);
         try {
             account.decreaseBalance(amount);
@@ -52,7 +53,8 @@ public class BalanceService {
             throw new BadRequestException(e.getMessage());
         }
         account = accountService.saveAccount(account);
-        operationService.addWithdrawal(account, amount);
+        Operation operation = operationService.createWithdrawal(account, amount);
+        operationService.saveOperation(operation);
     }
 
     public List<Operation> getOperationList(Long userId, Date dateFrom, Date dateTo) {

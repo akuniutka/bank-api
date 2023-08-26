@@ -45,13 +45,13 @@ class BalanceControllerTest {
         BigDecimal balance = FORMATTED_TEN;
         ResponseDto response = new ResponseDto(balance);
         String expected = objectMapper.writeValueAsString(response);
-        when(service.getUserBalance(USER_ID)).thenReturn(balance);
+        when(service.getBalance(USER_ID)).thenReturn(balance);
         mvc.perform(get(GET_BALANCE, USER_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).getUserBalance(USER_ID);
+        verify(service, times(MAX_MOCK_CALLS)).getBalance(USER_ID);
         verifyNoMoreInteractions(ignoreStubs(service));
     }
 
@@ -63,7 +63,7 @@ class BalanceControllerTest {
         order.setUserId(USER_ID);
         order.setAmount(TEN);
         String jsonOrder = objectMapper.writeValueAsString(order);
-        doNothing().when(service).increaseUserBalance(USER_ID, TEN);
+        doNothing().when(service).putMoney(USER_ID, TEN);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -71,7 +71,7 @@ class BalanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).increaseUserBalance(USER_ID, TEN);
+        verify(service, times(MAX_MOCK_CALLS)).putMoney(USER_ID, TEN);
         verifyNoMoreInteractions(ignoreStubs(service));
     }
 
@@ -83,7 +83,7 @@ class BalanceControllerTest {
         order.setUserId(USER_ID);
         order.setAmount(ONE);
         String jsonOrder = objectMapper.writeValueAsString(order);
-        doNothing().when(service).decreaseUserBalance(USER_ID, ONE);
+        doNothing().when(service).takeMoney(USER_ID, ONE);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -91,7 +91,7 @@ class BalanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service, times(MAX_MOCK_CALLS)).decreaseUserBalance(USER_ID, ONE);
+        verify(service, times(MAX_MOCK_CALLS)).takeMoney(USER_ID, ONE);
         verifyNoMoreInteractions(ignoreStubs(service));
     }
 }

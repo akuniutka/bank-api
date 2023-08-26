@@ -13,12 +13,10 @@ import java.util.List;
 
 @Service
 public class OperationService {
-    private final AccountService accountService;
     private final OperationRepository repository;
 
-    public OperationService(OperationRepository repository, AccountService accountService) {
+    public OperationService(OperationRepository repository) {
         this.repository = repository;
-        this.accountService = accountService;
     }
 
     public void addDeposit(Account account, BigDecimal amount) {
@@ -73,19 +71,8 @@ public class OperationService {
     }
 
     public Operation saveOperation(Operation operation) {
-        return saveOperation(operation, false);
-    }
-
-    public Operation saveOperationWithAllRelated(Operation operation) {
-        return saveOperation(operation, true);
-    }
-
-    private Operation saveOperation(Operation operation, boolean saveRelated) {
         if (operation == null) {
             throw new IllegalArgumentException(ErrorMessage.OPERATION_IS_NULL);
-        }
-        if (saveRelated) {
-            accountService.saveAccount(operation.getAccount());
         }
         return repository.save(operation);
     }
