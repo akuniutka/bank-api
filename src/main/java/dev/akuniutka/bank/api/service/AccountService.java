@@ -7,8 +7,6 @@ import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-
 @Service
 public class AccountService {
     private final AccountRepository repository;
