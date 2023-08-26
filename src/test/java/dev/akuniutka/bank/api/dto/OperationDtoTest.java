@@ -5,23 +5,20 @@ import dev.akuniutka.bank.api.entity.OperationType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Calendar;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 
 class OperationDtoTest {
-    private static final Calendar CALENDAR = Calendar.getInstance();
     private static final Operation OPERATION = new Operation();
 
     @BeforeAll
     static void init() {
-        CALENDAR.clear();
-        CALENDAR.set(2023, Calendar.JANUARY, 1);
         OPERATION.setType(OperationType.DEPOSIT);
         OPERATION.setAmount(TEN);
-        OPERATION.setDate(CALENDAR.getTime());
+        OPERATION.setDate(new Date());
     }
 
     @Test
@@ -42,7 +39,7 @@ class OperationDtoTest {
     @Test
     void testOperationDtoWhenTypeIsNull() {
         Operation operation = new Operation();
-        operation.setDate(CALENDAR.getTime());
+        operation.setDate(new Date());
         operation.setAmount(TEN);
         Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
         assertEquals(OPERATION_TYPE_IS_NULL, e.getMessage());
@@ -51,7 +48,7 @@ class OperationDtoTest {
     @Test
     void testOperationDtoWhenAmountIsNull() {
         Operation operation = new Operation();
-        operation.setDate(CALENDAR.getTime());
+        operation.setDate(new Date());
         operation.setType(OperationType.DEPOSIT);
         Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
