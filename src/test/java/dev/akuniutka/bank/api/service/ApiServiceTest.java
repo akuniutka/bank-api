@@ -25,7 +25,6 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 
 @ExtendWith(MockitoExtension.class)
 class ApiServiceTest {
-    private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
     private static final Long RECEIVER_ID = 2L;
     private Date dateFrom;
@@ -70,7 +69,7 @@ class ApiServiceTest {
         when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.getBalance(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
+        verify(accountService).getAccount(null);
     }
 
     @Test
@@ -78,7 +77,7 @@ class ApiServiceTest {
         when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundToGetBalanceException.class, () -> service.getBalance(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService).getAccount(USER_ID);
     }
 
     @Test
@@ -86,8 +85,8 @@ class ApiServiceTest {
         when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(account.getBalance()).thenReturn(FORMATTED_TEN);
         assertEquals(FORMATTED_TEN, service.getBalance(USER_ID));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).getBalance();
+        verify(accountService).getAccount(USER_ID);
+        verify(account).getBalance();
     }
 
     @Test
@@ -95,7 +94,7 @@ class ApiServiceTest {
         when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
+        verify(accountService).getAccount(null);
     }
 
     @Test
@@ -103,7 +102,7 @@ class ApiServiceTest {
         when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.putMoney(USER_ID, TEN));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService).getAccount(USER_ID);
     }
 
     @Test
@@ -112,8 +111,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).increaseBalance(NULL);
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(NULL);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(NULL);
     }
 
     @Test
@@ -122,8 +121,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).increaseBalance(MINUS_TEN);
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(MINUS_TEN);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(MINUS_TEN);
     }
 
     @Test
@@ -132,8 +131,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).increaseBalance(ZERO);
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(ZERO);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(ZERO);
     }
 
     @Test
@@ -142,8 +141,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).increaseBalance(ONE_THOUSANDTH);
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(ONE_THOUSANDTH);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(ONE_THOUSANDTH);
     }
 
     @Test
@@ -153,19 +152,19 @@ class ApiServiceTest {
         doNothing().when(account).increaseBalance(TEN);
         when(operationService.createDeposit(account, TEN)).thenReturn(operation);
         when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account, times(MAX_MOCK_CALLS)).increaseBalance(TEN);
+            verify(account).increaseBalance(TEN);
             return a.getArguments()[0];
         });
         when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
+            verify(accountService).saveAccount(account);
             return a.getArguments()[0];
         });
         assertDoesNotThrow(() -> service.putMoney(USER_ID, TEN));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(TEN);
-        verify(operationService, times(MAX_MOCK_CALLS)).createDeposit(account, TEN);
-        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
-        verify(operationService, times(MAX_MOCK_CALLS)).saveOperation(operation);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(TEN);
+        verify(operationService).createDeposit(account, TEN);
+        verify(accountService).saveAccount(account);
+        verify(operationService).saveOperation(operation);
     }
 
     @Test
@@ -175,19 +174,19 @@ class ApiServiceTest {
         doNothing().when(account).increaseBalance(TEN_THOUSANDTHS);
         when(operationService.createDeposit(account, TEN_THOUSANDTHS)).thenReturn(operation);
         when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account, times(MAX_MOCK_CALLS)).increaseBalance(TEN_THOUSANDTHS);
+            verify(account).increaseBalance(TEN_THOUSANDTHS);
             return a.getArguments()[0];
         });
         when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
+            verify(accountService).saveAccount(account);
             return a.getArguments()[0];
         });
         assertDoesNotThrow(() -> service.putMoney(USER_ID, TEN_THOUSANDTHS));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).increaseBalance(TEN_THOUSANDTHS);
-        verify(operationService, times(MAX_MOCK_CALLS)).createDeposit(account, TEN_THOUSANDTHS);
-        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
-        verify(operationService, times(MAX_MOCK_CALLS)).saveOperation(operation);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).increaseBalance(TEN_THOUSANDTHS);
+        verify(operationService).createDeposit(account, TEN_THOUSANDTHS);
+        verify(accountService).saveAccount(account);
+        verify(operationService).saveOperation(operation);
     }
 
     @Test
@@ -195,7 +194,7 @@ class ApiServiceTest {
         when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
+        verify(accountService).getAccount(null);
     }
 
     @Test
@@ -203,7 +202,7 @@ class ApiServiceTest {
         when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.takeMoney(USER_ID, ONE));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService).getAccount(USER_ID);
     }
 
     @Test
@@ -212,8 +211,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).decreaseBalance(NULL);
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(NULL);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(NULL);
     }
 
     @Test
@@ -222,8 +221,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).decreaseBalance(MINUS_ONE);
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(MINUS_ONE);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(MINUS_ONE);
     }
 
     @Test
@@ -232,8 +231,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).decreaseBalance(ZERO);
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(ZERO);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(ZERO);
     }
 
     @Test
@@ -242,8 +241,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).decreaseBalance(ONE_THOUSANDTH);
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(ONE_THOUSANDTH);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(ONE_THOUSANDTH);
     }
 
     @Test
@@ -252,8 +251,8 @@ class ApiServiceTest {
         doThrow(new IllegalAmountException(INSUFFICIENT_BALANCE)).when(account).decreaseBalance(ONE);
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(ONE);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(ONE);
     }
 
     @Test
@@ -263,19 +262,19 @@ class ApiServiceTest {
         doNothing().when(account).decreaseBalance(ONE);
         when(operationService.createWithdrawal(account, ONE)).thenReturn(operation);
         when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(ONE);
+            verify(account).decreaseBalance(ONE);
             return a.getArguments()[0];
         });
         when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
+            verify(accountService).saveAccount(account);
             return a.getArguments()[0];
         });
         assertDoesNotThrow(() -> service.takeMoney(USER_ID, ONE));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(ONE);
-        verify(operationService, times(MAX_MOCK_CALLS)).createWithdrawal(account, ONE);
-        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
-        verify(operationService, times(MAX_MOCK_CALLS)).saveOperation(operation);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(ONE);
+        verify(operationService).createWithdrawal(account, ONE);
+        verify(accountService).saveAccount(account);
+        verify(operationService).saveOperation(operation);
     }
 
     @Test
@@ -285,19 +284,19 @@ class ApiServiceTest {
         doNothing().when(account).decreaseBalance(TEN_THOUSANDTHS);
         when(operationService.createWithdrawal(account, TEN_THOUSANDTHS)).thenReturn(operation);
         when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(TEN_THOUSANDTHS);
+            verify(account).decreaseBalance(TEN_THOUSANDTHS);
             return a.getArguments()[0];
         });
         when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
+            verify(accountService).saveAccount(account);
             return a.getArguments()[0];
         });
         assertDoesNotThrow(() -> service.takeMoney(USER_ID, TEN_THOUSANDTHS));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(account, times(MAX_MOCK_CALLS)).decreaseBalance(TEN_THOUSANDTHS);
-        verify(operationService, times(MAX_MOCK_CALLS)).createWithdrawal(account, TEN_THOUSANDTHS);
-        verify(accountService, times(MAX_MOCK_CALLS)).saveAccount(account);
-        verify(operationService, times(MAX_MOCK_CALLS)).saveOperation(operation);
+        verify(accountService).getAccount(USER_ID);
+        verify(account).decreaseBalance(TEN_THOUSANDTHS);
+        verify(operationService).createWithdrawal(account, TEN_THOUSANDTHS);
+        verify(accountService).saveAccount(account);
+        verify(operationService).saveOperation(operation);
     }
 
     @Test
@@ -307,7 +306,7 @@ class ApiServiceTest {
                 () -> service.getOperationList(null, dateFrom, dateTo)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(null);
+        verify(accountService).getAccount(null);
     }
 
     @Test
@@ -317,7 +316,7 @@ class ApiServiceTest {
                 () -> service.getOperationList(USER_ID, dateFrom, dateTo)
         );
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
+        verify(accountService).getAccount(USER_ID);
     }
 
     @Test
@@ -325,8 +324,8 @@ class ApiServiceTest {
         when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(operationService.getOperations(account, dateFrom, dateTo)).thenReturn(operations);
         assertEquals(operations, service.getOperationList(USER_ID, dateFrom, dateTo));
-        verify(accountService, times(MAX_MOCK_CALLS)).getAccount(USER_ID);
-        verify(operationService, times(MAX_MOCK_CALLS)).getOperations(account, dateFrom, dateTo);
+        verify(accountService).getAccount(USER_ID);
+        verify(operationService).getOperations(account, dateFrom, dateTo);
     }
 
     @Test

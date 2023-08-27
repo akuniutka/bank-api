@@ -15,7 +15,6 @@ import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 class AccountServiceTest {
-    private static final int MAX_MOCK_CALLS = 1;
     private static final Long USER_ID = 1L;
     private AccountRepository repository;
     private AccountService service;
@@ -42,7 +41,7 @@ class AccountServiceTest {
         when(repository.findById(USER_ID)).thenReturn(Optional.empty());
         Exception e = assertThrows(UserNotFoundException.class, () -> service.getAccount(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository).findById(USER_ID);
     }
 
     @Test
@@ -50,7 +49,7 @@ class AccountServiceTest {
         Account account = mock(Account.class);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
         assertEquals(account, service.getAccount(USER_ID));
-        verify(repository, times(MAX_MOCK_CALLS)).findById(USER_ID);
+        verify(repository).findById(USER_ID);
         verifyNoMoreInteractions(ignoreStubs(account));
     }
 
@@ -65,7 +64,7 @@ class AccountServiceTest {
         Account account = mock(Account.class);
         when(repository.save(account)).thenReturn(account);
         assertEquals(account, service.saveAccount(account));
-        verify(repository, times(MAX_MOCK_CALLS)).save(account);
+        verify(repository).save(account);
         verifyNoInteractions(ignoreStubs(account));
     }
 }

@@ -21,7 +21,6 @@ import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
-    private static final int MAX_MOCK_CALLS = 1;
     private Date dateFrom;
     private Date dateTo;
     private Account account;
@@ -314,28 +313,28 @@ class OperationServiceTest {
     void testGetOperationsWhenDateFromIsNullAndDateToIsNull() {
         when(repository.findByAccountOrderByDate(account)).thenReturn(operations);
         assertEquals(operations, service.getOperations(account, null, null));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountOrderByDate(account);
+        verify(repository).findByAccountOrderByDate(account);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNull() {
         when(repository.findByAccountAndDateAfterOrderByDate(account, dateFrom)).thenReturn(operations);
         assertEquals(operations, service.getOperations(account, dateFrom, null));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateAfterOrderByDate(account, dateFrom);
+        verify(repository).findByAccountAndDateAfterOrderByDate(account, dateFrom);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNullAndDateToIsNotNull() {
         when(repository.findByAccountAndDateBeforeOrderByDate(account, dateTo)).thenReturn(operations);
         assertEquals(operations, service.getOperations(account, null, dateTo));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBeforeOrderByDate(account, dateTo);
+        verify(repository).findByAccountAndDateBeforeOrderByDate(account, dateTo);
     }
 
     @Test
     void testGetOperationsWhenDateFromIsNotNullAndDateToIsNotNull() {
         when(repository.findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo)).thenReturn(operations);
         assertEquals(operations, service.getOperations(account, dateFrom, dateTo));
-        verify(repository, times(MAX_MOCK_CALLS)).findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
+        verify(repository).findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
     }
 
     @Test
@@ -349,7 +348,7 @@ class OperationServiceTest {
         Operation operation = mock(Operation.class);
         when(repository.save(operation)).thenReturn(operation);
         assertEquals(operation, service.saveOperation(operation));
-        verify(repository, times(MAX_MOCK_CALLS)).save(operation);
+        verify(repository).save(operation);
         verifyNoMoreInteractions(ignoreStubs(operation));
     }
 }

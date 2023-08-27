@@ -12,7 +12,6 @@ import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 class TransferServiceTest {
-    private static final int MAX_MOCK_CALLS = 1;
     private TransferRepository repository;
     private TransferService service;
 
@@ -66,11 +65,11 @@ class TransferServiceTest {
     }
 
     @Test
-    void saveTrannsferWhenTransferIsNotNull() {
+    void saveTransferWhenTransferIsNotNull() {
         Transfer transfer = mock(Transfer.class);
         when(repository.save(transfer)).thenReturn(transfer);
         assertEquals(transfer, service.saveTransfer(transfer));
-        verify(repository, times(MAX_MOCK_CALLS)).save(transfer);
+        verify(repository).save(transfer);
         verifyNoMoreInteractions(ignoreStubs(transfer));
     }
 }
