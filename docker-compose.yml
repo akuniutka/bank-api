@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:13.2-alpine
+    environment:
+      - POSTGRES_USER=${BANK_API_USERNAME}
+      - POSTGRES_PASSWORD=${BANK_API_PASSWORD}
+      - POSTGRES_DB=bank
+
+  api:
+    image: bank-api:1.2.0-SNAPSHOT
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/bank
+      - SPRING_DATASOURCE_USERNAME=${BANK_API_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${BANK_API_PASSWORD}
+      - JAVA_OPTS=-Xms50M -Xmx100M
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
