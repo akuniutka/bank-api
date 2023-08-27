@@ -4,6 +4,7 @@ A demo Spring Boot application which allows:
 - to get an account balance,
 - to deposit money to an account,
 - to withdraw money from an account,
+- to transfer money from one account to another one,
 - to get an operations history for an account, 
 
 via REST API.
@@ -96,6 +97,40 @@ following JSON:
     }
 ```
 
+### /transferMoney
+
+Receives an instruction in the following JSON structure:
+```
+    {
+        "userId": 1001,
+        "receiverId": 1002,
+        "amount": 200
+    }
+```
+and returns `200 OK` and the following JSON if transfer was successful:
+```
+    {
+        "result": 1
+        "message": ""
+    }
+```
+If a user with either `userId` or `receiverId` does not exist, 
+returns `404 Not Found` and the following JSON:
+```
+    {
+        "result": 0
+        "message": "receiver not found"
+    }
+```
+If there is another error in the request, returns `400 Bad Request` 
+and the following JSON:
+```
+    {
+        "result": 0
+        "message": "insufficient balance"
+    }
+```
+
 ### /getOperationList/{userId}
 
 If a user with such `userId` exists, returns `200 OK` and a history 
@@ -170,8 +205,8 @@ All these parameters can be changed by adding `spring.datasource.url`,
 `db.properties` in the working directory.
 
 Database has to contain a sequence `HIBERNATE_SEQUENCE` and tables
-`ACCOUNT` and `OPERATION` (see a database dump `dump.sql` in the 
-project directory):
+`ACCOUNT`, `OPERATION`, `TRANSFER` (see a database dump `dump.sql` in 
+the project directory):
 
 ![Database structure](db_structure.png)
 
