@@ -7,6 +7,8 @@ import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+
 @Service
 public class AccountService {
     private final AccountRepository repository;
@@ -22,10 +24,19 @@ public class AccountService {
         return repository.findById(userId).orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
-    public Account saveAccount(Account account) {
-        if (account == null) {
-            throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);
-        }
+    public BigDecimal getUserBalance(Long userId) {
+        return getAccount(userId).getBalance();
+    }
+
+    public Account increaseUserBalance(Long userId, BigDecimal amount) {
+        Account account = getAccount(userId);
+        account.increaseBalance(amount);
+        return repository.save(account);
+    }
+
+    public Account decreaseUserBalance(Long userId, BigDecimal amount) {
+        Account account = getAccount(userId);
+        account.decreaseBalance(amount);
         return repository.save(account);
     }
 }

@@ -66,236 +66,185 @@ class ApiServiceTest {
 
     @Test
     void testGetBalanceWhenUserIdIsNull() {
-        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.getUserBalance(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.getBalance(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(null);
+        verify(accountService).getUserBalance(null);
     }
 
     @Test
     void testGetBalanceWhenUserDoesNotExist() {
-        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.getUserBalance(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundToGetBalanceException.class, () -> service.getBalance(USER_ID));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
+        verify(accountService).getUserBalance(USER_ID);
     }
 
     @Test
     void testGetBalanceWhenUserExists() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(account.getBalance()).thenReturn(FORMATTED_TEN);
+        when(accountService.getUserBalance(USER_ID)).thenReturn(FORMATTED_TEN);
         assertEquals(FORMATTED_TEN, service.getBalance(USER_ID));
-        verify(accountService).getAccount(USER_ID);
-        verify(account).getBalance();
+        verify(accountService).getUserBalance(USER_ID);
     }
 
     @Test
     void testPutMoneyWhenUserIdIsNull() {
-        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(null);
+        verify(accountService).increaseUserBalance(null, TEN);
     }
 
     @Test
     void testPutMoneyWhenUserDoesNotExist() {
-        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.putMoney(USER_ID, TEN));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
     }
 
     @Test
     void testPutMoneyWhenAmountIsNull() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).increaseBalance(NULL);
-        Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, NULL));
+        when(accountService.increaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(NULL);
+        verify(accountService).increaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testPutMoneyWhenAmountIsNegative() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).increaseBalance(MINUS_TEN);
+        when(accountService.increaseUserBalance(USER_ID, MINUS_TEN))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(MINUS_TEN);
+        verify(accountService).increaseUserBalance(USER_ID, MINUS_TEN);
     }
 
     @Test
     void testPutMoneyWhenAmountIsZero() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).increaseBalance(ZERO);
+        when(accountService.increaseUserBalance(USER_ID, ZERO))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(ZERO);
+        verify(accountService).increaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testPutMoneyWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).increaseBalance(ONE_THOUSANDTH);
+        when(accountService.increaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(BadRequestException.class, () -> service.putMoney(USER_ID, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(ONE_THOUSANDTH);
+        verify(accountService).increaseUserBalance(USER_ID, ONE_THOUSANDTH);
     }
 
     @Test
     void testPutMoneyWhenAmountIsPositive() {
         Operation operation = mock(Operation.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doNothing().when(account).increaseBalance(TEN);
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenReturn(account);
         when(operationService.createDeposit(account, TEN)).thenReturn(operation);
-        when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account).increaseBalance(TEN);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(operation)).thenReturn(operation);
         assertDoesNotThrow(() -> service.putMoney(USER_ID, TEN));
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(TEN);
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
         verify(operationService).createDeposit(account, TEN);
-        verify(accountService).saveAccount(account);
         verify(operationService).saveOperation(operation);
     }
 
     @Test
     void testPutMoneyWhenScaleIsGreaterThanTwoButWithZeros() {
         Operation operation = mock(Operation.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doNothing().when(account).increaseBalance(TEN_THOUSANDTHS);
+        when(accountService.increaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
         when(operationService.createDeposit(account, TEN_THOUSANDTHS)).thenReturn(operation);
-        when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account).increaseBalance(TEN_THOUSANDTHS);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(operation)).thenReturn(operation);
         assertDoesNotThrow(() -> service.putMoney(USER_ID, TEN_THOUSANDTHS));
-        verify(accountService).getAccount(USER_ID);
-        verify(account).increaseBalance(TEN_THOUSANDTHS);
+        verify(accountService).increaseUserBalance(USER_ID, TEN_THOUSANDTHS);
         verify(operationService).createDeposit(account, TEN_THOUSANDTHS);
-        verify(accountService).saveAccount(account);
         verify(operationService).saveOperation(operation);
     }
 
     @Test
     void testTakeMoneyWhenUserIdIsNull() {
-        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(null);
+        verify(accountService).decreaseUserBalance(null, ONE);
     }
 
     @Test
     void testTakeMoneyWhenUserDoesNotExist() {
-        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class, () -> service.takeMoney(USER_ID, ONE));
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
 
     @Test
     void testTakeMoneyWhenAmountIsNull() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).decreaseBalance(NULL);
-        Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, NULL));
+        when(accountService.decreaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(NULL);
+        verify(accountService).decreaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testTakeMoneyWhenAmountIsNegative() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).decreaseBalance(MINUS_ONE);
+        when(accountService.decreaseUserBalance(USER_ID, MINUS_ONE))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(MINUS_ONE);
+        verify(accountService).decreaseUserBalance(USER_ID, MINUS_ONE);
     }
 
     @Test
     void testTakeMoneyWhenAmountIsZero() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).decreaseBalance(ZERO);
+        when(accountService.decreaseUserBalance(USER_ID, BigDecimal.ZERO))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(ZERO);
+        verify(accountService).decreaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testTakeMoneyWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).decreaseBalance(ONE_THOUSANDTH);
+        when(accountService.decreaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(ONE_THOUSANDTH);
+        verify(accountService).decreaseUserBalance(USER_ID, ONE_THOUSANDTH);
     }
 
     @Test
     void testTakeMoneyWhenBalanceIsInsufficient() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doThrow(new IllegalAmountException(INSUFFICIENT_BALANCE)).when(account).decreaseBalance(ONE);
+        when(accountService.decreaseUserBalance(USER_ID, ONE))
+                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
         Exception e = assertThrows(BadRequestException.class, () -> service.takeMoney(USER_ID, ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(ONE);
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
 
     @Test
     void testTakeMoneyWhenBalanceIsSufficient() {
         Operation operation = mock(Operation.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doNothing().when(account).decreaseBalance(ONE);
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenReturn(account);
         when(operationService.createWithdrawal(account, ONE)).thenReturn(operation);
-        when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account).decreaseBalance(ONE);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(operation)).thenReturn(operation);
         assertDoesNotThrow(() -> service.takeMoney(USER_ID, ONE));
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(ONE);
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
         verify(operationService).createWithdrawal(account, ONE);
-        verify(accountService).saveAccount(account);
         verify(operationService).saveOperation(operation);
     }
 
     @Test
     void testTakeMoneyWhenScaleIsGreaterThanTwoButWithZeros() {
         Operation operation = mock(Operation.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        doNothing().when(account).decreaseBalance(TEN_THOUSANDTHS);
+        when(accountService.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
         when(operationService.createWithdrawal(account, TEN_THOUSANDTHS)).thenReturn(operation);
-        when(accountService.saveAccount(account)).thenAnswer(a -> {
-            verify(account).decreaseBalance(TEN_THOUSANDTHS);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(operation)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(operation)).thenReturn(operation);
         assertDoesNotThrow(() -> service.takeMoney(USER_ID, TEN_THOUSANDTHS));
-        verify(accountService).getAccount(USER_ID);
-        verify(account).decreaseBalance(TEN_THOUSANDTHS);
+        verify(accountService).decreaseUserBalance(USER_ID, TEN_THOUSANDTHS);
         verify(operationService).createWithdrawal(account, TEN_THOUSANDTHS);
-        verify(accountService).saveAccount(account);
         verify(operationService).saveOperation(operation);
     }
 
@@ -330,114 +279,105 @@ class ApiServiceTest {
 
     @Test
     void testTransferMoneyWhenUserIdIsNull() {
+        when(accountService.decreaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(null, RECEIVER_ID, TEN)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(null, TEN);
     }
 
     @Test
     void testTransferMoneyWhenReceiverIdIsNull() {
+        when(accountService.decreaseUserBalance(USER_ID, TEN)).thenReturn(account);
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(USER_ID, null, TEN)
         );
         assertEquals(RECEIVER_ID_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, TEN);
+        verify(accountService).increaseUserBalance(null, TEN);
     }
 
     @Test
     void testTransferMoneyWhenUserDoesNotExist() {
-        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.decreaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, TEN)
         );
         assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
+        verify(accountService).decreaseUserBalance(USER_ID, TEN);
     }
 
     @Test
     void testTransferMoneyWhenReceiverDoesNotExist() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.decreaseUserBalance(USER_ID, TEN)).thenReturn(account);
+        when(accountService.increaseUserBalance(RECEIVER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, TEN)
         );
         assertEquals(RECEIVER_NOT_FOUND, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
+        verify(accountService).decreaseUserBalance(USER_ID, TEN);
+        verify(accountService).increaseUserBalance(RECEIVER_ID, TEN);
     }
 
     @Test
     void testTransferMoneyWhenAmountIsNull() {
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).decreaseBalance(null);
+        when(accountService.decreaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(null);
+        verify(accountService).decreaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testTransferMoneyWhenAmountIsNegative() {
         BigDecimal amount = MINUS_TEN;
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).decreaseBalance(amount);
+        when(accountService.decreaseUserBalance(USER_ID, amount))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
         Exception e = assertThrows(BadRequestException.class,
                     () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
+        verify(accountService).decreaseUserBalance(USER_ID, amount);
     }
 
     @Test
     void testTransferMoneyWhenAmountIsZero() {
         BigDecimal amount = ZERO;
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).decreaseBalance(amount);
+        when(accountService.decreaseUserBalance(USER_ID, amount))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
+        verify(accountService).decreaseUserBalance(USER_ID, amount);
     }
 
     @Test
     void testTransferMoneyWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         BigDecimal amount = ONE_THOUSANDTH;
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).decreaseBalance(amount);
+        when(accountService.decreaseUserBalance(USER_ID, amount))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
+        verify(accountService).decreaseUserBalance(USER_ID, amount);
     }
 
     @Test
     void testTransferMoneyWhenBalanceIsInsufficient() {
         BigDecimal amount = TEN;
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doThrow(new IllegalAmountException(INSUFFICIENT_BALANCE)).when(account).decreaseBalance(amount);
+        when(accountService.decreaseUserBalance(USER_ID, amount))
+                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
         Exception e = assertThrows(BadRequestException.class,
                 () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
+        verify(accountService).decreaseUserBalance(USER_ID,amount);
     }
 
     @Test
@@ -446,12 +386,8 @@ class ApiServiceTest {
         Operation outgoing = mock(Operation.class);
         Operation incoming = mock(Operation.class);
         Transfer transfer = mock(Transfer.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doNothing().when(account).decreaseBalance(amount);
-        doNothing().when(receiverAccount).increaseBalance(amount);
-        when(accountService.saveAccount(account)).thenReturn(account);
-        when(accountService.saveAccount(receiverAccount)).thenReturn(receiverAccount);
+        when(accountService.decreaseUserBalance(USER_ID, amount)).thenReturn(account);
+        when(accountService.increaseUserBalance(RECEIVER_ID, amount)).thenReturn(receiverAccount);
         when(operationService.createOutgoingTransfer(eq(account), eq(amount), any(Date.class))).thenAnswer(a -> {
             storeTransferDate(a.getArguments()[2]);
             return outgoing;
@@ -462,23 +398,13 @@ class ApiServiceTest {
                     return incoming;
                 }
         );
-        when(operationService.saveOperation(outgoing)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(incoming)).thenAnswer(a -> {
-            verify(accountService).saveAccount(receiverAccount);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(outgoing)).thenReturn(outgoing);
+        when(operationService.saveOperation(incoming)).thenReturn(incoming);
         when(transferService.createTransfer(outgoing, incoming)).thenReturn(transfer);
         when(transferService.saveTransfer(transfer)).thenReturn(transfer);
         assertDoesNotThrow(() -> service.transferMoney(USER_ID, RECEIVER_ID, amount));
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
-        verify(receiverAccount).increaseBalance(amount);
-        verify(accountService).saveAccount(account);
-        verify(accountService).saveAccount(receiverAccount);
+        verify(accountService).decreaseUserBalance(USER_ID, amount);
+        verify(accountService).increaseUserBalance(RECEIVER_ID, amount);
         verify(operationService).createOutgoingTransfer(eq(account), eq(amount), any(Date.class));
         verify(operationService).createIncomingTransfer(eq(receiverAccount), eq(amount), any(Date.class));
         verify(operationService).saveOperation(outgoing);
@@ -493,12 +419,8 @@ class ApiServiceTest {
         Operation outgoing = mock(Operation.class);
         Operation incoming = mock(Operation.class);
         Transfer transfer = mock(Transfer.class);
-        when(accountService.getAccount(USER_ID)).thenReturn(account);
-        when(accountService.getAccount(RECEIVER_ID)).thenReturn(receiverAccount);
-        doNothing().when(account).decreaseBalance(amount);
-        doNothing().when(receiverAccount).increaseBalance(amount);
-        when(accountService.saveAccount(account)).thenReturn(account);
-        when(accountService.saveAccount(receiverAccount)).thenReturn(receiverAccount);
+        when(accountService.decreaseUserBalance(USER_ID, amount)).thenReturn(account);
+        when(accountService.increaseUserBalance(RECEIVER_ID, amount)).thenReturn(receiverAccount);
         when(operationService.createOutgoingTransfer(eq(account), eq(amount), any(Date.class))).thenAnswer(a -> {
             storeTransferDate(a.getArguments()[2]);
             return outgoing;
@@ -509,23 +431,13 @@ class ApiServiceTest {
                     return incoming;
                 }
         );
-        when(operationService.saveOperation(outgoing)).thenAnswer(a -> {
-            verify(accountService).saveAccount(account);
-            return a.getArguments()[0];
-        });
-        when(operationService.saveOperation(incoming)).thenAnswer(a -> {
-            verify(accountService).saveAccount(receiverAccount);
-            return a.getArguments()[0];
-        });
+        when(operationService.saveOperation(outgoing)).thenReturn(outgoing);
+        when(operationService.saveOperation(incoming)).thenReturn(incoming);
         when(transferService.createTransfer(outgoing, incoming)).thenReturn(transfer);
         when(transferService.saveTransfer(transfer)).thenReturn(transfer);
         assertDoesNotThrow(() -> service.transferMoney(USER_ID, RECEIVER_ID, amount));
-        verify(accountService).getAccount(USER_ID);
-        verify(accountService).getAccount(RECEIVER_ID);
-        verify(account).decreaseBalance(amount);
-        verify(receiverAccount).increaseBalance(amount);
-        verify(accountService).saveAccount(account);
-        verify(accountService).saveAccount(receiverAccount);
+        verify(accountService).decreaseUserBalance(USER_ID, amount);
+        verify(accountService).increaseUserBalance(RECEIVER_ID, amount);
         verify(operationService).createOutgoingTransfer(eq(account), eq(amount), any(Date.class));
         verify(operationService).createIncomingTransfer(eq(receiverAccount), eq(amount), any(Date.class));
         verify(operationService).saveOperation(outgoing);

@@ -34,33 +34,30 @@ public class ApiService {
 
     public BigDecimal getBalance(Long userid) {
         try {
-            Account account = accountService.getAccount(userid);
-            return account.getBalance();
+            return accountService.getUserBalance(userid);
         } catch (UserNotFoundException e) {
             throw new UserNotFoundToGetBalanceException(e.getMessage());
         }
     }
 
     public void putMoney(Long userId, BigDecimal amount) {
-        Account account = accountService.getAccount(userId);
+        Account account;
         try {
-            account.increaseBalance(amount);
+            account = accountService.increaseUserBalance(userId, amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        account = accountService.saveAccount(account);
         Operation operation = operationService.createDeposit(account, amount);
         operationService.saveOperation(operation);
     }
 
     public void takeMoney(Long userId, BigDecimal amount) {
-        Account account = accountService.getAccount(userId);
+        Account account;
         try {
-            account.decreaseBalance(amount);
+            account = accountService.decreaseUserBalance(userId, amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        account = accountService.saveAccount(account);
         Operation operation = operationService.createWithdrawal(account, amount);
         operationService.saveOperation(operation);
     }
@@ -71,27 +68,24 @@ public class ApiService {
     }
 
     public void transferMoney(Long payerId, Long payeeId, BigDecimal amount) {
-        if (payerId == null) {
-            throw new BadRequestException(ErrorMessage.USER_ID_IS_NULL);
-        } else if (payeeId == null) {
-            throw new BadRequestException(ErrorMessage.RECEIVER_ID_IS_NULL);
-        }
-        Account payer = accountService.getAccount(payerId);
-        Account payee;
+        Account payer, payee;
         try {
-            payee = accountService.getAccount(payeeId);
-        } catch (UserNotFoundException e) {
-            throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
-        }
-        Date date = new Date();
-        try {
-            payer.decreaseBalance(amount);
+            payer = accountService.decreaseUserBalance(payerId, amount);
+            try {
+                payee = accountService.increaseUserBalance(payeeId, amount);
+            } catch (BadRequestException e) {
+                if (ErrorMessage.USER_ID_IS_NULL.equals(e.getMessage())) {
+                    throw new BadRequestException(ErrorMessage.RECEIVER_ID_IS_NULL);
+                } else {
+                    throw e;
+                }
+            } catch (UserNotFoundException e) {
+                throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
+            }
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        payer = accountService.saveAccount(payer);
-        payee.increaseBalance(amount);
-        payee = accountService.saveAccount(payee);
+        Date date = new Date();
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payer, amount, date);
         outgoingTransfer = operationService.saveOperation(outgoingTransfer);
         Operation incomingTransfer = operationService.createIncomingTransfer(payee, amount, date);
