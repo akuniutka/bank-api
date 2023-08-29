@@ -1,7 +1,6 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.util.ErrorMessage;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.repository.OperationRepository;
@@ -13,52 +12,56 @@ import java.util.List;
 
 @Service
 public class OperationService {
+    private final AccountService accountService;
     private final OperationRepository repository;
 
-    public OperationService(OperationRepository repository) {
+    public OperationService(OperationRepository repository, AccountService accountService) {
         this.repository = repository;
+        this.accountService = accountService;
     }
 
-    public Operation createDeposit(Account account, BigDecimal amount) {
+    public Operation createDeposit(Long userId, BigDecimal amount) {
+        Account account = accountService.increaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.DEPOSIT);
         operation.setAmount(amount);
         operation.setDate(new Date());
-        return operation;
+        return repository.save(operation);
     }
 
-    public Operation createWithdrawal(Account account, BigDecimal amount) {
+    public Operation createWithdrawal(Long userId, BigDecimal amount) {
+        Account account = accountService.decreaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.WITHDRAWAL);
         operation.setAmount(amount);
         operation.setDate(new Date());
-        return operation;
+        return repository.save(operation);
     }
 
-    public Operation createIncomingTransfer(Account account, BigDecimal amount, Date date) {
+    public Operation createIncomingTransfer(Long userId, BigDecimal amount, Date date) {
+        Account account = accountService.increaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.INCOMING_TRANSFER);
         operation.setAmount(amount);
         operation.setDate(date);
-        return operation;
+        return repository.save(operation);
     }
 
-    public Operation createOutgoingTransfer(Account account, BigDecimal amount, Date date) {
+    public Operation createOutgoingTransfer(Long userId, BigDecimal amount, Date date) {
+        Account account = accountService.decreaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.OUTGOING_TRANSFER);
         operation.setAmount(amount);
         operation.setDate(date);
-        return operation;
+        return repository.save(operation);
     }
 
-    public List<Operation> getOperations(Account account, Date dateFrom, Date dateTo) {
-        if (account == null) {
-            throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);
-        }
+    public List<Operation> getUserOperations(Long userId, Date dateFrom, Date dateTo) {
+        Account account = accountService.getAccount(userId);
         if (dateFrom == null && dateTo == null) {
             return repository.findByAccountOrderByDate(account);
         } else if (dateFrom == null) {
@@ -68,12 +71,5 @@ public class OperationService {
         } else {
             return repository.findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
         }
-    }
-
-    public Operation saveOperation(Operation operation) {
-        if (operation == null) {
-            throw new IllegalArgumentException(ErrorMessage.OPERATION_IS_NULL);
-        }
-        return repository.save(operation);
     }
 }

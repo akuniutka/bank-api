@@ -1,6 +1,5 @@
 package dev.akuniutka.bank.api.service;
 
-import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
@@ -41,56 +40,44 @@ public class ApiService {
     }
 
     public void putMoney(Long userId, BigDecimal amount) {
-        Account account;
         try {
-            account = accountService.increaseUserBalance(userId, amount);
+            operationService.createDeposit(userId, amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        Operation operation = operationService.createDeposit(account, amount);
-        operationService.saveOperation(operation);
     }
 
     public void takeMoney(Long userId, BigDecimal amount) {
-        Account account;
         try {
-            account = accountService.decreaseUserBalance(userId, amount);
+            operationService.createWithdrawal(userId, amount);
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        Operation operation = operationService.createWithdrawal(account, amount);
-        operationService.saveOperation(operation);
     }
 
     public List<Operation> getOperationList(Long userId, Date dateFrom, Date dateTo) {
-        Account account = accountService.getAccount(userId);
-        return operationService.getOperations(account, dateFrom, dateTo);
+        return operationService.getUserOperations(userId, dateFrom, dateTo);
     }
 
     public void transferMoney(Long payerId, Long payeeId, BigDecimal amount) {
-        Account payer, payee;
         try {
-            payer = accountService.decreaseUserBalance(payerId, amount);
+            Date date = new Date();
+            Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);
             try {
-                payee = accountService.increaseUserBalance(payeeId, amount);
+                Operation incomingTransfer = operationService.createIncomingTransfer(payeeId, amount, date);
+                Transfer transfer = transferService.createTransfer(outgoingTransfer, incomingTransfer);
+                transferService.saveTransfer(transfer);
+
+            } catch (UserNotFoundException e) {
+                throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
             } catch (BadRequestException e) {
                 if (ErrorMessage.USER_ID_IS_NULL.equals(e.getMessage())) {
                     throw new BadRequestException(ErrorMessage.RECEIVER_ID_IS_NULL);
-                } else {
-                    throw e;
                 }
-            } catch (UserNotFoundException e) {
-                throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
+                throw e;
             }
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());
         }
-        Date date = new Date();
-        Operation outgoingTransfer = operationService.createOutgoingTransfer(payer, amount, date);
-        outgoingTransfer = operationService.saveOperation(outgoingTransfer);
-        Operation incomingTransfer = operationService.createIncomingTransfer(payee, amount, date);
-        incomingTransfer = operationService.saveOperation(incomingTransfer);
-        Transfer transfer = transferService.createTransfer(outgoingTransfer, incomingTransfer);
-        transferService.saveTransfer(transfer);
     }
 }

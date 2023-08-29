@@ -3,7 +3,9 @@ package dev.akuniutka.bank.api.service;
 import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
+import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,10 +23,14 @@ import static dev.akuniutka.bank.api.util.DateChecker.isDateBetween;
 
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
+    private static final Long USER_ID = 1L;
     private Date dateFrom;
     private Date dateTo;
     private Account account;
+    private Operation operation;
+    private Operation storedOperation;
     private List<Operation> operations;
+    private AccountService accountService;
     private OperationRepository repository;
     private OperationService service;
 
@@ -33,9 +39,12 @@ class OperationServiceTest {
         dateFrom = mock(Date.class);
         dateTo = mock(Date.class);
         account = mock(Account.class);
+        operation = mock(Operation.class);
+        storedOperation = null;
         operations = spy(new ArrayList<>());
+        accountService = mock(AccountService.class);
         repository = mock(OperationRepository.class);
-        service = new OperationService(repository);
+        service = new OperationService(repository, accountService);
     }
 
     @AfterEach
@@ -43,312 +52,487 @@ class OperationServiceTest {
         verifyNoMoreInteractions(ignoreStubs(dateFrom));
         verifyNoMoreInteractions(ignoreStubs(dateTo));
         verifyNoMoreInteractions(ignoreStubs(account));
+        verifyNoMoreInteractions(ignoreStubs(operation));
         verifyNoMoreInteractions(ignoreStubs(operations));
+        verifyNoMoreInteractions(ignoreStubs(accountService));
         verifyNoMoreInteractions(ignoreStubs(repository));
     }
 
     @Test
-    void testCreateDepositWhenAccountIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> service.createDeposit(null, TEN));
-        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+    void testCreateDepositWhenUserIdIsNull() {
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class, () -> service.createDeposit(null, TEN));
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).increaseUserBalance(null, TEN);
+    }
+
+    @Test
+    void testCreateDepositWhenUserDoesNotExist() {
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.createDeposit(USER_ID, TEN));
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
     }
 
     @Test
     void testCreateDepositWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, NULL));
+        when(accountService.increaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(USER_ID, null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testCreateDepositWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, MINUS_TEN));
+        when(accountService.increaseUserBalance(USER_ID, MINUS_TEN))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(USER_ID, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, MINUS_TEN);
     }
 
     @Test
     void testCreateDepositWhenAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, ZERO));
+        when(accountService.increaseUserBalance(USER_ID, ZERO)).thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testCreateDepositWhenScaleIsGreaterThanTwoWithNonZeros() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(account, ONE_THOUSANDTH));
+        when(accountService.increaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createDeposit(USER_ID, ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, ONE_THOUSANDTH);
     }
 
     @Test
     void testCreateDepositWhenScaleIsGreaterThanTwoButWithZeros() {
+        when(accountService.increaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation operation = service.createDeposit(account, TEN_THOUSANDTHS);
+        Operation actual = service.createDeposit(USER_ID, TEN_THOUSANDTHS);
         Date finish = new Date();
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.DEPOSIT, operation.getType());
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.DEPOSIT, storedOperation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, storedOperation.getAmount());
+        assertTrue(isDateBetween(storedOperation.getDate(), start, finish));
+        verify(accountService).increaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
     void testCreateDepositWhenAmountIsPositive() {
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation operation = service.createDeposit(account, TEN);
+        Operation actual = service.createDeposit(USER_ID, TEN);
         Date finish = new Date();
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.DEPOSIT, operation.getType());
-        assertEquals(FORMATTED_TEN, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.DEPOSIT, storedOperation.getType());
+        assertEquals(FORMATTED_TEN, storedOperation.getAmount());
+        assertTrue(isDateBetween(storedOperation.getDate(), start, finish));
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testCreateWithdrawalWhenAccountIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> service.createWithdrawal(null, ONE));
-        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+    void testCreateWithdrawalWhenUserIdIsNull() {
+        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class, () -> service.createWithdrawal(null, ONE));
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(null, ONE);
+    }
+
+    @Test
+    void testCreateWithdrawalWhenUserDoesNotExist() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class, () -> service.createWithdrawal(USER_ID, ONE));
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
 
     @Test
     void testCreateWithdrawalWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, NULL));
+        when(accountService.decreaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(USER_ID, null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testCreateWithdrawalWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, MINUS_ONE));
+        when(accountService.decreaseUserBalance(USER_ID, MINUS_ONE))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(USER_ID, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, MINUS_ONE);
     }
 
     @Test
     void testCreateWithdrawalWhenAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(account, ZERO));
+        when(accountService.decreaseUserBalance(USER_ID, ZERO))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testCreateWithdrawalWhenScaleIsGreaterThanTwoWithNonZeros() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createWithdrawal(account, ONE_THOUSANDTH)
+                () -> service.createWithdrawal(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE_THOUSANDTH);
+    }
+
+    @Test
+    void testCreateWithdrawalWhenBalanceIsInsufficient() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE))
+                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
+        Exception e = assertThrows(IllegalAmountException.class, () -> service.createWithdrawal(USER_ID, ONE));
+        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
 
     @Test
     void testCreateWithdrawalWhenScaleIsGreaterThanTwoButWithZeros() {
+        when(accountService.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation operation = service.createWithdrawal(account, TEN_THOUSANDTHS);
+        Operation actual = service.createWithdrawal(USER_ID, TEN_THOUSANDTHS);
         Date finish = new Date();
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.WITHDRAWAL, storedOperation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, storedOperation.getAmount());
+        assertTrue(isDateBetween(storedOperation.getDate(), start, finish));
+        verify(accountService).decreaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testCreateWithdrawalWhenAmountIsPositive() {
+    void testCreateWithdrawalWhenBalanceIsSufficient() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation operation = service.createWithdrawal(account, ONE);
+        Operation actual = service.createWithdrawal(USER_ID, ONE);
         Date finish = new Date();
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.WITHDRAWAL, operation.getType());
-        assertEquals(FORMATTED_ONE, operation.getAmount());
-        assertTrue(isDateBetween(operation.getDate(), start, finish));
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.WITHDRAWAL, storedOperation.getType());
+        assertEquals(FORMATTED_ONE, storedOperation.getAmount());
+        assertTrue(isDateBetween(storedOperation.getDate(), start, finish));
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testCreateIncomingTransferWhenAccountIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.createIncomingTransfer(null, ONE, dateFrom)
+    void testCreateIncomingTransferWhenUserIdIsNull() {
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.createIncomingTransfer(null, TEN, dateTo)
         );
-        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).increaseUserBalance(null, TEN);
     }
 
     @Test
-    void testCreateIncomingTransferWhenDateIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.createIncomingTransfer(account, ONE, null)
+    void testCreateIncomingTransferWhenUserDoesNotExist() {
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.createIncomingTransfer(USER_ID, TEN, dateTo)
         );
-        assertEquals(DATE_IS_NULL, e.getMessage());
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
     }
 
     @Test
     void testCreateIncomingTransferWhenAmountIsNull() {
+        when(accountService.increaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createIncomingTransfer(account, NULL, dateFrom));
+                () -> service.createIncomingTransfer(USER_ID, null, dateTo));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testCreateIncomingTransferWhenAmountIsNegative() {
+        when(accountService.increaseUserBalance(USER_ID, MINUS_TEN))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createIncomingTransfer(account, MINUS_ONE, dateFrom)
+                () -> service.createIncomingTransfer(USER_ID, MINUS_TEN, dateTo)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, MINUS_TEN);
     }
 
     @Test
     void testCreateIncomingTransferWhenAmountIsZero() {
+        when(accountService.increaseUserBalance(USER_ID, ZERO)).thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createIncomingTransfer(account, ZERO, dateFrom));
+                () -> service.createIncomingTransfer(USER_ID, ZERO, dateTo));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testCreateIncomingTransferWhenScaleIsGreaterThanTwoWithNonZeros() {
+        when(accountService.increaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createIncomingTransfer(account, ONE_THOUSANDTH, dateFrom)
+                () -> service.createIncomingTransfer(USER_ID, ONE_THOUSANDTH, dateTo)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, ONE_THOUSANDTH);
+    }
+
+    @Test
+    void testCreateIncomingTransferWhenDateIsNull() {
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenReturn(account);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createIncomingTransfer(USER_ID, TEN, null)
+        );
+        assertEquals(DATE_IS_NULL, e.getMessage());
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
     }
 
     @Test
     void testCreateIncomingTransferWhenScaleIsGreaterThanTwoButWithZeros() {
-        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
-        Operation operation = service.createIncomingTransfer(account, TEN_THOUSANDTHS, dateFrom);
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.INCOMING_TRANSFER, operation.getType());
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
-        assertEquals(dateFrom, operation.getDate());
+        when(accountService.increaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
+        lenient().when(dateTo.clone()).thenReturn(dateTo);
+        Operation actual = service.createIncomingTransfer(USER_ID, TEN_THOUSANDTHS, dateTo);
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.INCOMING_TRANSFER, storedOperation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, storedOperation.getAmount());
+        assertEquals(dateTo, storedOperation.getDate());
+        verify(accountService).increaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
     void testCreateIncomingTransferWhenAmountIsPositive() {
-        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
-        Operation operation = service.createIncomingTransfer(account, ONE, dateFrom);
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.INCOMING_TRANSFER, operation.getType());
-        assertEquals(FORMATTED_ONE, operation.getAmount());
-        assertEquals(dateFrom, operation.getDate());
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
+        lenient().when(dateTo.clone()).thenReturn(dateTo);
+        Operation actual = service.createIncomingTransfer(USER_ID, TEN, dateTo);
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.INCOMING_TRANSFER, storedOperation.getType());
+        assertEquals(FORMATTED_TEN, storedOperation.getAmount());
+        assertEquals(dateTo, storedOperation.getDate());
+        verify(accountService).increaseUserBalance(USER_ID, TEN);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testCreateOutgoingTransferWhenAccountIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.createOutgoingTransfer(null, ONE, dateTo)
+    void testCreateOutgoingTransferWhenUserIdIsNull() {
+        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.createOutgoingTransfer(null, ONE, dateFrom)
         );
-        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(null, ONE);
     }
 
     @Test
-    void testCreateOutgoingTransferWhenDateIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.createOutgoingTransfer(account, ONE, null)
+    void testCreateOutgoingTransferWhenUserDoesNotExist() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.createOutgoingTransfer(USER_ID, ONE, dateFrom)
         );
-        assertEquals(DATE_IS_NULL, e.getMessage());
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
+
 
     @Test
     void testCreateOutgoingTransferWhenAmountIsNull() {
+        when(accountService.decreaseUserBalance(USER_ID, null))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createOutgoingTransfer(account, NULL, dateTo));
+                () -> service.createOutgoingTransfer(USER_ID, null, dateFrom));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, null);
     }
 
     @Test
     void testCreateOutgoingTransferWhenAmountIsNegative() {
+        when(accountService.decreaseUserBalance(USER_ID, MINUS_ONE))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createOutgoingTransfer(account, MINUS_ONE, dateTo)
+                () -> service.createOutgoingTransfer(USER_ID, MINUS_ONE, dateFrom)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, MINUS_ONE);
     }
 
     @Test
     void testCreateOutgoingTransferWhenAmountIsZero() {
+        when(accountService.decreaseUserBalance(USER_ID, ZERO))
+                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createOutgoingTransfer(account, ZERO, dateTo));
+                () -> service.createOutgoingTransfer(USER_ID, ZERO, dateFrom));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ZERO);
     }
 
     @Test
     void testCreateOutgoingTransferWhenScaleIsGreaterThanTwoWithNonZeros() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE_THOUSANDTH))
+                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
         Exception e = assertThrows(IllegalAmountException.class,
-                () -> service.createOutgoingTransfer(account, ONE_THOUSANDTH, dateTo)
+                () -> service.createOutgoingTransfer(USER_ID, ONE_THOUSANDTH, dateFrom)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE_THOUSANDTH);
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenBalanceIsInsufficient() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE))
+                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
+        Exception e = assertThrows(IllegalAmountException.class,
+                () -> service.createOutgoingTransfer(USER_ID, ONE, dateFrom)
+        );
+        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
+    }
+
+    @Test
+    void testCreateOutgoingTransferWhenDateIsNull() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenReturn(account);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> service.createOutgoingTransfer(USER_ID, ONE, null)
+        );
+        assertEquals(DATE_IS_NULL, e.getMessage());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
     }
 
     @Test
     void testCreateOutgoingTransferWhenScaleIsGreaterThanTwoButWithZeros() {
-        lenient().when(dateTo.clone()).thenReturn(dateTo);
-        Operation operation = service.createOutgoingTransfer(account, TEN_THOUSANDTHS, dateTo);
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.OUTGOING_TRANSFER, operation.getType());
-        assertEquals(FORMATTED_TEN_THOUSANDTHS, operation.getAmount());
-        assertEquals(dateTo, operation.getDate());
+        when(accountService.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
+        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
+        Operation actual = service.createOutgoingTransfer(USER_ID, TEN_THOUSANDTHS, dateFrom);
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.OUTGOING_TRANSFER, storedOperation.getType());
+        assertEquals(FORMATTED_TEN_THOUSANDTHS, storedOperation.getAmount());
+        assertEquals(dateFrom, storedOperation.getDate());
+        verify(accountService).decreaseUserBalance(USER_ID, TEN_THOUSANDTHS);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testCreateOutgoingTransferWhenAmountIsPositive() {
-        lenient().when(dateTo.clone()).thenReturn(dateTo);
-        Operation operation = service.createOutgoingTransfer(account, ONE, dateTo);
-        assertNotNull(operation);
-        assertNull(operation.getId());
-        assertEquals(account, operation.getAccount());
-        assertEquals(OperationType.OUTGOING_TRANSFER, operation.getType());
-        assertEquals(FORMATTED_ONE, operation.getAmount());
-        assertEquals(dateTo, operation.getDate());
+    void testCreateOutgoingTransferWhenBalanceIsSufficient() {
+        when(accountService.decreaseUserBalance(USER_ID, ONE)).thenReturn(account);
+        when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
+        lenient().when(dateFrom.clone()).thenReturn(dateFrom);
+        Operation actual = service.createOutgoingTransfer(USER_ID, ONE, dateFrom);
+        assertEquals(operation, actual);
+        assertNotNull(storedOperation);
+        assertNull(storedOperation.getId());
+        assertEquals(account, storedOperation.getAccount());
+        assertEquals(OperationType.OUTGOING_TRANSFER, storedOperation.getType());
+        assertEquals(FORMATTED_ONE, storedOperation.getAmount());
+        assertEquals(dateFrom, storedOperation.getDate());
+        verify(accountService).decreaseUserBalance(USER_ID, ONE);
+        verify(repository).save(any(Operation.class));
     }
 
     @Test
-    void testGetOperationsWhenAccountIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class,
-                () -> service.getOperations(null, dateFrom, dateTo)
+    void testGetUserOperationsWhenUserIdIsNull() {
+        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        Exception e = assertThrows(BadRequestException.class,
+                () -> service.getUserOperations(null, dateFrom, dateTo)
         );
-        assertEquals(ACCOUNT_IS_NULL, e.getMessage());
+        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        verify(accountService).getAccount(null);
     }
 
     @Test
-    void testGetOperationsWhenDateFromIsNullAndDateToIsNull() {
+    void testGetUserOperationsWhenUserDoesNotExist() {
+        when(accountService.getAccount(USER_ID)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        Exception e = assertThrows(UserNotFoundException.class,
+                () -> service.getUserOperations(USER_ID, dateFrom, dateTo)
+        );
+        assertEquals(USER_NOT_FOUND, e.getMessage());
+        verify(accountService).getAccount(USER_ID);
+    }
+
+    @Test
+    void testGetUserOperationsWhenDateFromIsNullAndDateToIsNull() {
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(repository.findByAccountOrderByDate(account)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(account, null, null));
+        assertEquals(operations, service.getUserOperations(USER_ID, null, null));
+        verify(accountService).getAccount(USER_ID);
         verify(repository).findByAccountOrderByDate(account);
     }
 
     @Test
-    void testGetOperationsWhenDateFromIsNotNullAndDateToIsNull() {
+    void testGetUserOperationsWhenDateFromIsNotNullAndDateToIsNull() {
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(repository.findByAccountAndDateAfterOrderByDate(account, dateFrom)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(account, dateFrom, null));
+        assertEquals(operations, service.getUserOperations(USER_ID, dateFrom, null));
+        verify(accountService).getAccount(USER_ID);
         verify(repository).findByAccountAndDateAfterOrderByDate(account, dateFrom);
     }
 
     @Test
-    void testGetOperationsWhenDateFromIsNullAndDateToIsNotNull() {
+    void testGetUserOperationsWhenDateFromIsNullAndDateToIsNotNull() {
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(repository.findByAccountAndDateBeforeOrderByDate(account, dateTo)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(account, null, dateTo));
+        assertEquals(operations, service.getUserOperations(USER_ID, null, dateTo));
+        verify(accountService).getAccount(USER_ID);
         verify(repository).findByAccountAndDateBeforeOrderByDate(account, dateTo);
     }
 
     @Test
-    void testGetOperationsWhenDateFromIsNotNullAndDateToIsNotNull() {
+    void testGetUserOperationsWhenDateFromIsNotNullAndDateToIsNotNull() {
+        when(accountService.getAccount(USER_ID)).thenReturn(account);
         when(repository.findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo)).thenReturn(operations);
-        assertEquals(operations, service.getOperations(account, dateFrom, dateTo));
+        assertEquals(operations, service.getUserOperations(USER_ID, dateFrom, dateTo));
+        verify(accountService).getAccount(USER_ID);
         verify(repository).findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
     }
 
-    @Test
-    void testSaveOperationWhenOperationIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> service.saveOperation(null));
-        assertEquals(OPERATION_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testSaveOperationWhenOperationIsNotNull() {
-        Operation operation = mock(Operation.class);
-        when(repository.save(operation)).thenReturn(operation);
-        assertEquals(operation, service.saveOperation(operation));
-        verify(repository).save(operation);
-        verifyNoMoreInteractions(ignoreStubs(operation));
+    private Operation storeOperation(Object obj) {
+        if (obj instanceof Operation) {
+            if (storedOperation == null) {
+                storedOperation = (Operation) obj;
+                return operation;
+            } else {
+                throw new RuntimeException("operation already stored");
+            }
+        } else {
+            throw new IllegalArgumentException("argument is not of Operation type");
+        }
     }
 }
