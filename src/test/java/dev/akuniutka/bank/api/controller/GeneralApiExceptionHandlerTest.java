@@ -7,6 +7,7 @@ import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
+import dev.akuniutka.bank.api.service.AccountService;
 import dev.akuniutka.bank.api.service.ApiService;
 import dev.akuniutka.bank.api.service.TransferService;
 import org.junit.jupiter.api.AfterEach;
@@ -42,24 +43,28 @@ class GeneralApiExceptionHandlerTest {
     @MockBean
     private ApiService apiService;
     @MockBean
+    private AccountService accountService;
+    @MockBean
     private TransferService transferService;
 
     @AfterEach
     public void tearDown() {
         verifyNoMoreInteractions(ignoreStubs(apiService));
+        verifyNoMoreInteractions(ignoreStubs(accountService));
+        verifyNoMoreInteractions(ignoreStubs(transferService));
     }
 
     @Test
     void catchUserNotFoundToGetBalanceException() throws Exception {
         ResponseDto response = new ResponseDto(MINUS_ONE, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        given(apiService.getBalance(USER_ID)).willThrow(new UserNotFoundToGetBalanceException(USER_NOT_FOUND));
+        given(accountService.getUserBalance(USER_ID)).willThrow(new UserNotFoundToGetBalanceException(USER_NOT_FOUND));
         mvc.perform(get(GET_BALANCE, USER_ID))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(apiService).getBalance(USER_ID);
+        verify(accountService).getUserBalance(USER_ID);
     }
 
     @Test

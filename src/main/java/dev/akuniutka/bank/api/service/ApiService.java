@@ -23,13 +23,13 @@ public class ApiService {
         this.operationService = operationService;
     }
 
-    public BigDecimal getBalance(Long userid) {
-        try {
-            return accountService.getUserBalance(userid);
-        } catch (UserNotFoundException e) {
-            throw new UserNotFoundToGetBalanceException(e.getMessage());
-        }
-    }
+//    public BigDecimal getBalance(Long userid) {
+//        try {
+//            return accountService.getUserBalance(userid);
+//        } catch (UserNotFoundException e) {
+//            throw new UserNotFoundToGetBalanceException(e.getMessage());
+//        }
+//    }
 
     public void putMoney(Long userId, BigDecimal amount) {
         try {

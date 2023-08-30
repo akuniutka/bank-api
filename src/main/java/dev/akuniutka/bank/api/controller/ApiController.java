@@ -5,6 +5,8 @@ import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
+import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
+import dev.akuniutka.bank.api.service.AccountService;
 import dev.akuniutka.bank.api.service.ApiService;
 import dev.akuniutka.bank.api.service.TransferService;
 import dev.akuniutka.bank.api.util.ErrorMessage;
@@ -21,17 +23,23 @@ import java.util.List;
 public class ApiController {
     private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
     private final ApiService service;
+    private final AccountService accountService;
     private final TransferService transferService;
 
-    public ApiController(ApiService service, TransferService transferService) {
+    public ApiController(ApiService service, AccountService accountService, TransferService transferService) {
         this.service = service;
+        this.accountService = accountService;
         this.transferService = transferService;
     }
 
     @GetMapping("/getBalance/{userId}")
     @Operation(summary = "Get the current balance for a selected user")
     public ResponseDto getBalance(@PathVariable Long userId) {
-        return new ResponseDto(service.getBalance(userId));
+        try {
+            return new ResponseDto(accountService.getUserBalance(userId));
+        } catch (UserNotFoundException e) {
+            throw new UserNotFoundToGetBalanceException(e.getMessage());
+        }
     }
 
     @PutMapping("/putMoney")

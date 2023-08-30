@@ -9,6 +9,7 @@ import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.entity.Transfer;
+import dev.akuniutka.bank.api.service.AccountService;
 import dev.akuniutka.bank.api.service.ApiService;
 import dev.akuniutka.bank.api.service.TransferService;
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +54,8 @@ class ApiControllerTest {
     @MockBean
     private ApiService service;
     @MockBean
+    private AccountService accountService;
+    @MockBean
     private TransferService transferService;
 
     @BeforeAll
@@ -63,11 +66,13 @@ class ApiControllerTest {
     @AfterEach
     public void tearDown() {
         verifyNoMoreInteractions(ignoreStubs(service));
+        verifyNoMoreInteractions(ignoreStubs(accountService));
+        verifyNoMoreInteractions(ignoreStubs(transferService));
     }
 
     @Test
     void testApiController() {
-        assertDoesNotThrow(() -> new ApiController(null, null));
+        assertDoesNotThrow(() -> new ApiController(service, accountService, transferService));
     }
 
     @Test
@@ -75,13 +80,13 @@ class ApiControllerTest {
         BigDecimal balance = FORMATTED_TEN;
         ResponseDto response = new ResponseDto(balance);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(service.getBalance(USER_ID)).thenReturn(balance);
+        when(accountService.getUserBalance(USER_ID)).thenReturn(balance);
         mvc.perform(get(GET_BALANCE, USER_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).getBalance(USER_ID);
+        verify(accountService).getUserBalance(USER_ID);
     }
 
     @Test
