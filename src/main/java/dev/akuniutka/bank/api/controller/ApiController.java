@@ -4,10 +4,12 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.AccountService;
-import dev.akuniutka.bank.api.service.ApiService;
+import dev.akuniutka.bank.api.service.OperationService;
 import dev.akuniutka.bank.api.service.TransferService;
 import dev.akuniutka.bank.api.util.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,13 +24,16 @@ import java.util.List;
 @RestController
 public class ApiController {
     private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
-    private final ApiService service;
     private final AccountService accountService;
+    private final OperationService operationService;
     private final TransferService transferService;
 
-    public ApiController(ApiService service, AccountService accountService, TransferService transferService) {
-        this.service = service;
+    public ApiController(AccountService accountService,
+                         OperationService operationService,
+                         TransferService transferService
+    ) {
         this.accountService = accountService;
+        this.operationService = operationService;
         this.transferService = transferService;
     }
 
@@ -45,15 +50,23 @@ public class ApiController {
     @PutMapping("/putMoney")
     @Operation(summary = "Put money to user's account")
     public ResponseDto putMoney(@RequestBody CashOrderDto order) {
-        service.putMoney(order.getUserId(), order.getAmount());
-        return OK;
+        try {
+            operationService.createDeposit(order.getUserId(), order.getAmount());
+            return OK;
+        } catch (IllegalAmountException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     @PutMapping("/takeMoney")
     @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
-        service.takeMoney(order.getUserId(), order.getAmount());
-        return OK;
+        try {
+            operationService.createWithdrawal(order.getUserId(), order.getAmount());
+            return OK;
+        } catch (IllegalAmountException e) {
+            throw new BadRequestException(e.getMessage());
+        }
     }
 
     @PutMapping("/transferMoney")
@@ -70,7 +83,9 @@ public class ApiController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
     ) {
-        List<dev.akuniutka.bank.api.entity.Operation> operations = service.getOperationList(userId, dateFrom, dateTo);
+        List<dev.akuniutka.bank.api.entity.Operation> operations = operationService.getUserOperations(
+                userId, dateFrom, dateTo
+        );
         if (operations.isEmpty()) {
             throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }

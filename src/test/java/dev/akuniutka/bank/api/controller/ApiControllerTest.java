@@ -10,7 +10,7 @@ import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.service.AccountService;
-import dev.akuniutka.bank.api.service.ApiService;
+import dev.akuniutka.bank.api.service.OperationService;
 import dev.akuniutka.bank.api.service.TransferService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,9 +52,9 @@ class ApiControllerTest {
     @Autowired
     private MockMvc mvc;
     @MockBean
-    private ApiService service;
-    @MockBean
     private AccountService accountService;
+    @MockBean
+    private OperationService operationService;
     @MockBean
     private TransferService transferService;
 
@@ -65,14 +65,14 @@ class ApiControllerTest {
 
     @AfterEach
     public void tearDown() {
-        verifyNoMoreInteractions(ignoreStubs(service));
         verifyNoMoreInteractions(ignoreStubs(accountService));
+        verifyNoMoreInteractions(ignoreStubs(operationService));
         verifyNoMoreInteractions(ignoreStubs(transferService));
     }
 
     @Test
     void testApiController() {
-        assertDoesNotThrow(() -> new ApiController(service, accountService, transferService));
+        assertDoesNotThrow(() -> new ApiController(accountService, operationService, transferService));
     }
 
     @Test
@@ -91,13 +91,14 @@ class ApiControllerTest {
 
     @Test
     void testPutMoney() throws Exception {
+        Operation operation = mock(Operation.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(USER_ID);
         order.setAmount(TEN);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        doNothing().when(service).putMoney(USER_ID, TEN);
+        when(operationService.createDeposit(USER_ID, TEN)).thenReturn(operation);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -105,18 +106,20 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).putMoney(USER_ID, TEN);
+        verify(operationService).createDeposit(USER_ID, TEN);
+        verifyNoMoreInteractions(ignoreStubs(operation));
     }
 
     @Test
     void testTakeMoney() throws Exception {
+        Operation operation = mock(Operation.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(USER_ID);
         order.setAmount(ONE);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        doNothing().when(service).takeMoney(USER_ID, ONE);
+        when(operationService.createWithdrawal(USER_ID, ONE)).thenReturn(operation);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -124,7 +127,8 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).takeMoney(USER_ID, ONE);
+        verify(operationService).createWithdrawal(USER_ID, ONE);
+        verifyNoMoreInteractions(ignoreStubs(operation));
     }
 
     @Test
@@ -155,13 +159,13 @@ class ApiControllerTest {
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        when(service.getOperationList(USER_ID, null, null)).thenReturn(operations);
+        when(operationService.getUserOperations(USER_ID, null, null)).thenReturn(operations);
         mvc.perform(get(GET_OPERATION_LIST, USER_ID, null, null))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).getOperationList(USER_ID, null, null);
+        verify(operationService).getUserOperations(USER_ID, null, null);
     }
 
     @Test
@@ -171,13 +175,13 @@ class ApiControllerTest {
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        when(service.getOperationList(USER_ID, dateFrom, null)).thenReturn(operations);
+        when(operationService.getUserOperations(USER_ID, dateFrom, null)).thenReturn(operations);
         mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFromForQuery, null))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).getOperationList(USER_ID, dateFrom, null);
+        verify(operationService).getUserOperations(USER_ID, dateFrom, null);
     }
 
     @Test
@@ -187,13 +191,13 @@ class ApiControllerTest {
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        when(service.getOperationList(USER_ID, null, dateTo)).thenReturn(operations);
+        when(operationService.getUserOperations(USER_ID, null, dateTo)).thenReturn(operations);
         mvc.perform(get(GET_OPERATION_LIST, USER_ID, null, dateToForQuery))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).getOperationList(USER_ID, null, dateTo);
+        verify(operationService).getUserOperations(USER_ID, null, dateTo);
     }
 
     @Test
@@ -205,13 +209,13 @@ class ApiControllerTest {
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
-        when(service.getOperationList(USER_ID, dateFrom, dateTo)).thenReturn(operations);
+        when(operationService.getUserOperations(USER_ID, dateFrom, dateTo)).thenReturn(operations);
         mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFromForQuery, dateToForQuery))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).getOperationList(USER_ID, dateFrom, dateTo);
+        verify(operationService).getUserOperations(USER_ID, dateFrom, dateTo);
     }
 
     private List<Operation> generateTestOperationList() {
