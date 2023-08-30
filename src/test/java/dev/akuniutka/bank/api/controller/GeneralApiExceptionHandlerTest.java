@@ -8,6 +8,7 @@ import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.ApiService;
+import dev.akuniutka.bank.api.service.TransferService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ class GeneralApiExceptionHandlerTest {
     private MockMvc mvc;
     @MockBean
     private ApiService apiService;
+    @MockBean
+    private TransferService transferService;
 
     @AfterEach
     public void tearDown() {
@@ -106,7 +109,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(apiService).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        when(transferService.createTransfer(USER_ID, RECEIVER_ID, TEN))
+                .thenThrow(new UserNotFoundException(USER_NOT_FOUND));
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -114,7 +118,7 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(apiService).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        verify(transferService).createTransfer(USER_ID, RECEIVER_ID, TEN);
     }
 
     @Test
@@ -171,8 +175,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        doThrow(new BadRequestException(USER_ID_IS_NULL))
-                .when(apiService).transferMoney(null, null, NULL);
+        when(transferService.createTransfer(null, null, null))
+                .thenThrow(new BadRequestException(USER_ID_IS_NULL));
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -180,6 +184,6 @@ class GeneralApiExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(apiService).transferMoney(null, null, NULL);
+        verify(transferService).createTransfer(null, null, null);
     }
 }

@@ -1,8 +1,6 @@
 package dev.akuniutka.bank.api.service;
 
-import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
-import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
@@ -13,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,42 +23,27 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 @ExtendWith(MockitoExtension.class)
 class ApiServiceTest {
     private static final Long USER_ID = 1L;
-    private static final Long RECEIVER_ID = 2L;
     private Date dateFrom;
     private Date dateTo;
-    private Account account;
-    private Account receiverAccount;
-    private List<Operation> operations;
     private AccountService accountService;
     private OperationService operationService;
-    private TransferService transferService;
     private ApiService service;
-    private Date transferDate;
 
     @BeforeEach
     void setUp() {
         dateFrom = mock(Date.class);
         dateTo = mock(Date.class);
-        account = mock(Account.class);
-        receiverAccount = mock(Account.class);
-        operations = spy(new ArrayList<>());
         accountService = mock(AccountService.class);
         operationService = mock(OperationService.class);
-        transferService = mock(TransferService.class);
-        service = new ApiService(accountService, operationService, transferService);
-        transferDate = null;
+        service = new ApiService(accountService, operationService);
     }
 
     @AfterEach
     public void tearDown() {
         verifyNoMoreInteractions(ignoreStubs(dateFrom));
         verifyNoMoreInteractions(ignoreStubs(dateTo));
-        verifyNoMoreInteractions(ignoreStubs(account));
-        verifyNoMoreInteractions(ignoreStubs(receiverAccount));
-        verifyNoMoreInteractions(ignoreStubs(operations));
         verifyNoMoreInteractions(ignoreStubs(accountService));
         verifyNoMoreInteractions(ignoreStubs(operationService));
-        verifyNoMoreInteractions(ignoreStubs(transferService));
     }
 
     @Test
@@ -260,188 +242,10 @@ class ApiServiceTest {
 
     @Test
     void testGetOperationListWhenUserExists() {
+        List<Operation> operations = spy(new ArrayList<>());
         when(operationService.getUserOperations(USER_ID, dateFrom, dateTo)).thenReturn(operations);
         assertEquals(operations, service.getOperationList(USER_ID, dateFrom, dateTo));
         verify(operationService).getUserOperations(USER_ID, dateFrom, dateTo);
+        verifyNoMoreInteractions(ignoreStubs(operations));
     }
-
-    @Test
-    void testTransferMoneyWhenUserIdIsNull() {
-        when(operationService.createOutgoingTransfer(eq(null), eq(TEN), any(Date.class)))
-                .thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(null, RECEIVER_ID, TEN)
-        );
-        assertEquals(USER_ID_IS_NULL, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(null), eq(TEN), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenReceiverIdIsNull() {
-        Operation outgoing = mock(Operation.class);
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class))).thenAnswer(a -> {
-            storeTransferDate(a.getArguments()[2]);
-            return outgoing;
-        });
-        when(operationService.createIncomingTransfer(eq(null), eq(TEN), any(Date.class))).thenAnswer(a -> {
-            assertEquals(transferDate, a.getArguments()[2]);
-            throw new BadRequestException(USER_ID_IS_NULL);
-        });
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(USER_ID, null, TEN)
-        );
-        assertEquals(RECEIVER_ID_IS_NULL, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class));
-        verify(operationService).createIncomingTransfer(eq(null), eq(TEN), any(Date.class));
-        verifyNoMoreInteractions(ignoreStubs(outgoing));
-    }
-
-    @Test
-    void testTransferMoneyWhenUserDoesNotExist() {
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class)))
-                .thenThrow(new UserNotFoundException(USER_NOT_FOUND));
-        Exception e = assertThrows(UserNotFoundException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, TEN)
-        );
-        assertEquals(USER_NOT_FOUND, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenReceiverDoesNotExist() {
-        Operation outgoing = mock(Operation.class);
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class))).thenAnswer(a -> {
-            storeTransferDate(a.getArguments()[2]);
-            return outgoing;
-        });
-        when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(TEN), any(Date.class))).thenAnswer(a -> {
-            assertEquals(transferDate, a.getArguments()[2]);
-            throw new UserNotFoundException(USER_NOT_FOUND);
-        });
-        Exception e = assertThrows(UserNotFoundException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, TEN)
-        );
-        assertEquals(RECEIVER_NOT_FOUND, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(TEN), any(Date.class));
-        verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(TEN), any(Date.class));
-        verifyNoMoreInteractions(ignoreStubs(outgoing));
-    }
-
-    @Test
-    void testTransferMoneyWhenAmountIsNull() {
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(null), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, null)
-        );
-        assertEquals(AMOUNT_IS_NULL, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(null), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenAmountIsNegative() {
-        BigDecimal amount = MINUS_TEN;
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
-        Exception e = assertThrows(BadRequestException.class,
-                    () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
-        );
-        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenAmountIsZero() {
-        BigDecimal amount = ZERO;
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
-        );
-        assertEquals(AMOUNT_IS_ZERO, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        BigDecimal amount = ONE_THOUSANDTH;
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
-        );
-        assertEquals(WRONG_MINOR_UNITS, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenBalanceIsInsufficient() {
-        BigDecimal amount = TEN;
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
-        Exception e = assertThrows(BadRequestException.class,
-                () -> service.transferMoney(USER_ID, RECEIVER_ID, amount)
-        );
-        assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-    }
-
-    @Test
-    void testTransferMoneyWhenBalanceIsSufficient() {
-        BigDecimal amount = TEN;
-        Operation outgoing = mock(Operation.class);
-        Operation incoming = mock(Operation.class);
-        Transfer transfer = mock(Transfer.class);
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
-            storeTransferDate(a.getArguments()[2]);
-            return outgoing;
-        });
-        when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
-            assertEquals(transferDate, a.getArguments()[2]);
-            return incoming;
-
-        });
-        when(transferService.createTransfer(outgoing, incoming)).thenReturn(transfer);
-        when(transferService.saveTransfer(transfer)).thenReturn(transfer);
-        assertDoesNotThrow(() -> service.transferMoney(USER_ID, RECEIVER_ID, amount));
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-        verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class));
-        verify(transferService).createTransfer(outgoing, incoming);
-        verify(transferService).saveTransfer(transfer);
-        verifyNoMoreInteractions(ignoreStubs(outgoing));
-        verifyNoMoreInteractions(ignoreStubs(incoming));
-        verifyNoMoreInteractions(ignoreStubs(transfer));
-    }
-
-    @Test
-    void testTransferMoneyWhenScaleIsGreaterThatTwoButWithZeros() {
-        BigDecimal amount = TEN_THOUSANDTHS;
-        Operation outgoing = mock(Operation.class);
-        Operation incoming = mock(Operation.class);
-        Transfer transfer = mock(Transfer.class);
-        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
-            storeTransferDate(a.getArguments()[2]);
-            return outgoing;
-        });
-        when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
-            assertEquals(transferDate, a.getArguments()[2]);
-            return incoming;
-        });
-        when(transferService.createTransfer(outgoing, incoming)).thenReturn(transfer);
-        when(transferService.saveTransfer(transfer)).thenReturn(transfer);
-        assertDoesNotThrow(() -> service.transferMoney(USER_ID, RECEIVER_ID, amount));
-        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
-        verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class));
-        verify(transferService).createTransfer(outgoing, incoming);
-        verify(transferService).saveTransfer(transfer);
-    }
-
-    private void storeTransferDate(Object o) {
-        if (o instanceof Date) {
-            transferDate = (Date) o;
-        } else {
-            throw new IllegalArgumentException("argument is not of Date type");
-        }
-    }
-
 }

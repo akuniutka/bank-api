@@ -8,7 +8,9 @@ import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
+import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.service.ApiService;
+import dev.akuniutka.bank.api.service.TransferService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,8 @@ class ApiControllerTest {
     private MockMvc mvc;
     @MockBean
     private ApiService service;
+    @MockBean
+    private TransferService transferService;
 
     @BeforeAll
     static void init() {
@@ -63,7 +67,7 @@ class ApiControllerTest {
 
     @Test
     void testApiController() {
-        assertDoesNotThrow(() -> new ApiController(null));
+        assertDoesNotThrow(() -> new ApiController(null, null));
     }
 
     @Test
@@ -120,6 +124,7 @@ class ApiControllerTest {
 
     @Test
     void testTransferMoney() throws Exception {
+        Transfer transfer = mock(Transfer.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         PaymentOrderDto order = new PaymentOrderDto();
@@ -127,7 +132,7 @@ class ApiControllerTest {
         order.setReceiverId(RECEIVER_ID);
         order.setAmount(TEN);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        doNothing().when(service).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        when(transferService.createTransfer(USER_ID, RECEIVER_ID, TEN)).thenReturn(transfer);
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -135,7 +140,8 @@ class ApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
-        verify(service).transferMoney(USER_ID, RECEIVER_ID, TEN);
+        verify(transferService).createTransfer(USER_ID, RECEIVER_ID, TEN);
+        verifyNoMoreInteractions(ignoreStubs(transfer));
     }
 
 

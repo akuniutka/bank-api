@@ -6,6 +6,7 @@ import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.service.ApiService;
+import dev.akuniutka.bank.api.service.TransferService;
 import dev.akuniutka.bank.api.util.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,9 +21,11 @@ import java.util.List;
 public class ApiController {
     private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
     private final ApiService service;
+    private final TransferService transferService;
 
-    public ApiController(ApiService service) {
+    public ApiController(ApiService service, TransferService transferService) {
         this.service = service;
+        this.transferService = transferService;
     }
 
     @GetMapping("/getBalance/{userId}")
@@ -48,7 +51,7 @@ public class ApiController {
     @PutMapping("/transferMoney")
     @Operation(summary = "Transfer money from user's account to receiver's account")
     public ResponseDto transferMoney(@RequestBody PaymentOrderDto order) {
-        service.transferMoney(order.getUserId(), order.getReceiverId(), order.getAmount());
+        transferService.createTransfer(order.getUserId(), order.getReceiverId(), order.getAmount());
         return OK;
     }
 
