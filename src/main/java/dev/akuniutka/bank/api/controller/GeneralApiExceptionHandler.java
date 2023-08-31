@@ -2,6 +2,7 @@ package dev.akuniutka.bank.api.controller;
 
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.OperationsNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,12 @@ public class GeneralApiExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseDto catchUserNotFoundException(UserNotFoundException e) {
+        return new ResponseDto(BigDecimal.ZERO, e.getMessage());
+    }
+
+    @ExceptionHandler(OperationsNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseDto catchOperationsNotFoundException(OperationsNotFoundException e) {
         return new ResponseDto(BigDecimal.ZERO, e.getMessage());
     }
 

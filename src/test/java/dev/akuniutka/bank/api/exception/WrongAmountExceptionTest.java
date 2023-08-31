@@ -3,14 +3,14 @@ package dev.akuniutka.bank.api.exception;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static dev.akuniutka.bank.api.util.ErrorMessage.AMOUNT_IS_NEGATIVE;
 
 class WrongAmountExceptionTest {
     @Test
     void testWrongAmountException() {
-        String expected = "wrong amount error message for bank API";
         Exception e = assertThrows(WrongAmountException.class, () -> {
-            throw new WrongAmountException(expected);
+            throw new WrongAmountException(AMOUNT_IS_NEGATIVE);
         });
-        assertEquals(expected, e.getMessage());
+        assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 }

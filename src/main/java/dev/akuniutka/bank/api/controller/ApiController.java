@@ -4,6 +4,7 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.exception.OperationsNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.AccountService;
@@ -77,7 +78,7 @@ public class ApiController {
                 userId, dateFrom, dateTo
         );
         if (operations.isEmpty()) {
-            throw new UserNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
+            throw new OperationsNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);
         }
         List<OperationDto> dtoList = new ArrayList<>();
         for (dev.akuniutka.bank.api.entity.Operation operation : operations) {
