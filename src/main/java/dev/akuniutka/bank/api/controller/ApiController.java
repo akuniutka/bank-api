@@ -4,8 +4,6 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
-import dev.akuniutka.bank.api.exception.BadRequestException;
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.AccountService;
@@ -50,23 +48,15 @@ public class ApiController {
     @PutMapping("/putMoney")
     @Operation(summary = "Put money to user's account")
     public ResponseDto putMoney(@RequestBody CashOrderDto order) {
-        try {
-            operationService.createDeposit(order.getUserId(), order.getAmount());
-            return OK;
-        } catch (IllegalAmountException e) {
-            throw new BadRequestException(e.getMessage());
-        }
+        operationService.createDeposit(order.getUserId(), order.getAmount());
+        return OK;
     }
 
     @PutMapping("/takeMoney")
     @Operation(summary = "Take money from user's account")
     public ResponseDto takeMoney(@RequestBody CashOrderDto order) {
-        try {
-            operationService.createWithdrawal(order.getUserId(), order.getAmount());
-            return OK;
-        } catch (IllegalAmountException e) {
-            throw new BadRequestException(e.getMessage());
-        }
+        operationService.createWithdrawal(order.getUserId(), order.getAmount());
+        return OK;
     }
 
     @PutMapping("/transferMoney")

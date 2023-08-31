@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.WrongAmountException;
 import dev.akuniutka.bank.api.util.AmountValidator;
 import org.junit.jupiter.api.Test;
 
@@ -28,19 +28,19 @@ class AmountValidatorTest {
 
     @Test
     void testAssertBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertBalance(ONE_THOUSANDTH));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertBalance(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testAssertBalanceWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertBalance(MINUS_ONE));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertBalance(MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testAssertBalanceWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertBalance(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertBalance(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -56,25 +56,25 @@ class AmountValidatorTest {
 
     @Test
     void testAssertAmountWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertAmount(ONE_THOUSANDTH));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testAssertAmountWhenAmountIsZero() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertAmount(ZERO));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testAssertAmountWhenAmountIsNegative() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertAmount(MINUS_ONE));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testAssertAmountWhenAmountIsNull() {
-        Exception e = assertThrows(IllegalAmountException.class, () -> AmountValidator.assertAmount(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 }

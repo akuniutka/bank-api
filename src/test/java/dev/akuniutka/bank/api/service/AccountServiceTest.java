@@ -1,7 +1,7 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.WrongAmountException;
 import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
@@ -96,9 +96,9 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenAmountIsNull() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).increaseBalance(null);
+        doThrow(new WrongAmountException(AMOUNT_IS_NULL)).when(account).increaseBalance(null);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class,
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.increaseUserBalance(USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
@@ -108,9 +108,9 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenAmountIsNegative() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).increaseBalance(MINUS_TEN);
+        doThrow(new WrongAmountException(AMOUNT_IS_NEGATIVE)).when(account).increaseBalance(MINUS_TEN);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.increaseUserBalance(USER_ID, MINUS_TEN));
+        Exception e = assertThrows(WrongAmountException.class, () -> service.increaseUserBalance(USER_ID, MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
         verify(repository).findById(USER_ID);
         verify(account).increaseBalance(MINUS_TEN);
@@ -118,9 +118,9 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenAmountIsZero() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).increaseBalance(ZERO);
+        doThrow(new WrongAmountException(AMOUNT_IS_ZERO)).when(account).increaseBalance(ZERO);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.increaseUserBalance(USER_ID, ZERO));
+        Exception e = assertThrows(WrongAmountException.class, () -> service.increaseUserBalance(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
         verify(repository).findById(USER_ID);
         verify(account).increaseBalance(ZERO);
@@ -128,9 +128,9 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).increaseBalance(ONE_THOUSANDTH);
+        doThrow(new WrongAmountException(WRONG_MINOR_UNITS)).when(account).increaseBalance(ONE_THOUSANDTH);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class,
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.increaseUserBalance(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
@@ -178,9 +178,9 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenAmountIsNull() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_NULL)).when(account).decreaseBalance(null);
+        doThrow(new WrongAmountException(AMOUNT_IS_NULL)).when(account).decreaseBalance(null);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class,
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.decreaseUserBalance(USER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
@@ -190,9 +190,9 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenAmountIsNegative() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE)).when(account).decreaseBalance(MINUS_ONE);
+        doThrow(new WrongAmountException(AMOUNT_IS_NEGATIVE)).when(account).decreaseBalance(MINUS_ONE);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.decreaseUserBalance(USER_ID, MINUS_ONE));
+        Exception e = assertThrows(WrongAmountException.class, () -> service.decreaseUserBalance(USER_ID, MINUS_ONE));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
         verify(repository).findById(USER_ID);
         verify(account).decreaseBalance(MINUS_ONE);
@@ -200,9 +200,9 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenAmountIsZero() {
-        doThrow(new IllegalAmountException(AMOUNT_IS_ZERO)).when(account).decreaseBalance(ZERO);
+        doThrow(new WrongAmountException(AMOUNT_IS_ZERO)).when(account).decreaseBalance(ZERO);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.decreaseUserBalance(USER_ID, ZERO));
+        Exception e = assertThrows(WrongAmountException.class, () -> service.decreaseUserBalance(USER_ID, ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
         verify(repository).findById(USER_ID);
         verify(account).decreaseBalance(ZERO);
@@ -210,9 +210,9 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenScaleIsGreaterThanTwoAndWithNonZeros() {
-        doThrow(new IllegalAmountException(WRONG_MINOR_UNITS)).when(account).decreaseBalance(ONE_THOUSANDTH);
+        doThrow(new WrongAmountException(WRONG_MINOR_UNITS)).when(account).decreaseBalance(ONE_THOUSANDTH);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class,
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.decreaseUserBalance(USER_ID, ONE_THOUSANDTH)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
@@ -222,9 +222,9 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenBalanceIsInsufficient() {
-        doThrow(new IllegalAmountException(INSUFFICIENT_BALANCE)).when(account).decreaseBalance(ONE);
+        doThrow(new WrongAmountException(INSUFFICIENT_BALANCE)).when(account).decreaseBalance(ONE);
         when(repository.findById(USER_ID)).thenReturn(Optional.of(account));
-        Exception e = assertThrows(IllegalAmountException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
+        Exception e = assertThrows(WrongAmountException.class, () -> service.decreaseUserBalance(USER_ID, ONE));
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());
         verify(repository).findById(USER_ID);
         verify(account).decreaseBalance(ONE);

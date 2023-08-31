@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.entity;
 
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.WrongAmountException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -80,28 +80,28 @@ class OperationTest {
     @Test
     void testSetAmountWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         Operation operation = new Operation();
-        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(ONE_THOUSANDTH));
+        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(ONE_THOUSANDTH));
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsZero() {
         Operation operation = new Operation();
-        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(ZERO));
+        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(ZERO));
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNegative() {
         Operation operation = new Operation();
-        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(MINUS_TEN));
+        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(MINUS_TEN));
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
     }
 
     @Test
     void testSetAmountWhenAmountIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(IllegalAmountException.class, () -> operation.setAmount(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(NULL));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 

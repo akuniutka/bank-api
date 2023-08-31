@@ -4,12 +4,12 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class IllegalAmountExceptionTest {
+class WrongAmountExceptionTest {
     @Test
-    void testIllegalAmountException() {
+    void testWrongAmountException() {
         String expected = "wrong amount error message for bank API";
-        Exception e = assertThrows(IllegalAmountException.class, () -> {
-            throw new IllegalAmountException(expected);
+        Exception e = assertThrows(WrongAmountException.class, () -> {
+            throw new WrongAmountException(expected);
         });
         assertEquals(expected, e.getMessage());
     }

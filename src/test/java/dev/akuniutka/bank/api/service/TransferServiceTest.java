@@ -2,8 +2,7 @@ package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.Transfer;
-import dev.akuniutka.bank.api.exception.BadRequestException;
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.WrongAmountException;
 import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.TransferRepository;
@@ -113,8 +112,8 @@ class TransferServiceTest {
     @Test
     void testCreateTransferWhenAmountIsNull() {
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(null), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new WrongAmountException(AMOUNT_IS_NULL));
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, null)
         );
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
@@ -125,8 +124,8 @@ class TransferServiceTest {
     void testCreateTransferWhenAmountIsNegative() {
         BigDecimal amount = MINUS_TEN;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_NEGATIVE));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new WrongAmountException(AMOUNT_IS_NEGATIVE));
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(AMOUNT_IS_NEGATIVE, e.getMessage());
@@ -137,8 +136,8 @@ class TransferServiceTest {
     void testCreateTransferWhenAmountIsZero() {
         BigDecimal amount = ZERO;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(AMOUNT_IS_ZERO));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new WrongAmountException(AMOUNT_IS_ZERO));
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(AMOUNT_IS_ZERO, e.getMessage());
@@ -149,8 +148,8 @@ class TransferServiceTest {
     void testCreateTransferWhenScaleIsGreaterThanTwoAndWithNonZeros() {
         BigDecimal amount = ONE_THOUSANDTH;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(WRONG_MINOR_UNITS));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new WrongAmountException(WRONG_MINOR_UNITS));
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(WRONG_MINOR_UNITS, e.getMessage());
@@ -161,8 +160,8 @@ class TransferServiceTest {
     void testCreateTransferWhenBalanceIsInsufficient() {
         BigDecimal amount = TEN;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class)))
-                .thenThrow(new IllegalAmountException(INSUFFICIENT_BALANCE));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new WrongAmountException(INSUFFICIENT_BALANCE));
+        Exception e = assertThrows(WrongAmountException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, amount)
         );
         assertEquals(INSUFFICIENT_BALANCE, e.getMessage());

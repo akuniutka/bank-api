@@ -1,6 +1,6 @@
 package dev.akuniutka.bank.api.util;
 
-import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.WrongAmountException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,6 +30,6 @@ public class AmountValidator {
         } else {
             return;
         }
-        throw new IllegalAmountException(message);
+        throw new WrongAmountException(message);
     }
 }
