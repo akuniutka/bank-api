@@ -1,8 +1,8 @@
 package dev.akuniutka.bank.api.service;
 
 import dev.akuniutka.bank.api.entity.Account;
-import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -38,7 +38,7 @@ class AccountServiceTest {
 
     @Test
     void testGetAccountWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.getAccount(null));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.getAccount(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
@@ -59,7 +59,7 @@ class AccountServiceTest {
 
     @Test
     void testGetUserBalanceWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.getUserBalance(null));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.getUserBalance(null));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
@@ -82,7 +82,7 @@ class AccountServiceTest {
 
     @Test
     void testIncreaseUserBalanceWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.increaseUserBalance(null, TEN));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.increaseUserBalance(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 
@@ -164,7 +164,7 @@ class AccountServiceTest {
 
     @Test
     void testDecreaseUserBalanceWhenUserIdIsNull() {
-        Exception e = assertThrows(BadRequestException.class, () -> service.decreaseUserBalance(null, ONE));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.decreaseUserBalance(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
     }
 

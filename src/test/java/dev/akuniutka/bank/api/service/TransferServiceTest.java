@@ -4,6 +4,7 @@ import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.TransferRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -54,8 +55,8 @@ class TransferServiceTest {
     @Test
     void testCreateTransferWhenUserIdIsNull() {
         when(operationService.createOutgoingTransfer(eq(null), eq(TEN), any(Date.class)))
-                .thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
+                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createTransfer(null, RECEIVER_ID, TEN)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());
@@ -70,9 +71,9 @@ class TransferServiceTest {
         });
         when(operationService.createIncomingTransfer(eq(null), eq(TEN), any(Date.class))).thenAnswer(a -> {
             assertEquals(transferDate, a.getArguments()[2]);
-            throw new BadRequestException(USER_ID_IS_NULL);
+            throw new NullUserIdException(USER_ID_IS_NULL);
         });
-        Exception e = assertThrows(BadRequestException.class,
+        Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createTransfer(USER_ID, null, TEN)
         );
         assertEquals(RECEIVER_ID_IS_NULL, e.getMessage());

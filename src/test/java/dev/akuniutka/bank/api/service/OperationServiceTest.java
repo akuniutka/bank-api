@@ -3,8 +3,8 @@ package dev.akuniutka.bank.api.service;
 import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.OperationRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -60,8 +60,8 @@ class OperationServiceTest {
 
     @Test
     void testCreateDepositWhenUserIdIsNull() {
-        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class, () -> service.createDeposit(null, TEN));
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.createDeposit(null, TEN));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
         verify(accountService).increaseUserBalance(null, TEN);
     }
@@ -147,8 +147,8 @@ class OperationServiceTest {
 
     @Test
     void testCreateWithdrawalWhenUserIdIsNull() {
-        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class, () -> service.createWithdrawal(null, ONE));
+        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class, () -> service.createWithdrawal(null, ONE));
         assertEquals(USER_ID_IS_NULL, e.getMessage());
         verify(accountService).decreaseUserBalance(null, ONE);
     }
@@ -246,8 +246,8 @@ class OperationServiceTest {
 
     @Test
     void testCreateIncomingTransferWhenUserIdIsNull() {
-        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
+        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createIncomingTransfer(null, TEN, dateTo)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());
@@ -351,8 +351,8 @@ class OperationServiceTest {
 
     @Test
     void testCreateOutgoingTransferWhenUserIdIsNull() {
-        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
+        when(accountService.decreaseUserBalance(null, ONE)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createOutgoingTransfer(null, ONE, dateFrom)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());
@@ -469,8 +469,8 @@ class OperationServiceTest {
 
     @Test
     void testGetUserOperationsWhenUserIdIsNull() {
-        when(accountService.getAccount(null)).thenThrow(new BadRequestException(USER_ID_IS_NULL));
-        Exception e = assertThrows(BadRequestException.class,
+        when(accountService.getAccount(null)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        Exception e = assertThrows(NullUserIdException.class,
                 () -> service.getUserOperations(null, dateFrom, dateTo)
         );
         assertEquals(USER_ID_IS_NULL, e.getMessage());

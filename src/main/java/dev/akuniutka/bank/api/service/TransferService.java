@@ -4,6 +4,7 @@ import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.IllegalAmountException;
+import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.TransferRepository;
 import dev.akuniutka.bank.api.util.ErrorMessage;
@@ -34,11 +35,8 @@ public class TransferService {
                 return repository.save(transfer);
             } catch (UserNotFoundException e) {
                 throw new UserNotFoundException(ErrorMessage.RECEIVER_NOT_FOUND);
-            } catch (BadRequestException e) {
-                if (ErrorMessage.USER_ID_IS_NULL.equals(e.getMessage())) {
-                    throw new BadRequestException(ErrorMessage.RECEIVER_ID_IS_NULL);
-                }
-                throw e;
+            } catch (NullUserIdException e) {
+                throw new NullUserIdException(ErrorMessage.RECEIVER_ID_IS_NULL);
             }
         } catch (IllegalAmountException e) {
             throw new BadRequestException(e.getMessage());

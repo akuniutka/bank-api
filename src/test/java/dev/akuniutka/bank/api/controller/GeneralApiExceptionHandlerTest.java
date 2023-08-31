@@ -5,6 +5,7 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.exception.BadRequestException;
+import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.exception.UserNotFoundToGetBalanceException;
 import dev.akuniutka.bank.api.service.AccountService;
@@ -184,6 +185,60 @@ class GeneralApiExceptionHandlerTest {
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         when(transferService.createTransfer(null, null, null))
                 .thenThrow(new BadRequestException(USER_ID_IS_NULL));
+        mvc.perform(put(TRANSFER_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(transferService).createTransfer(null, null, null);
+    }
+
+    @Test
+    void catchNullUserIdExceptionWhenPutMoney() throws Exception {
+        CashOrderDto order = new CashOrderDto();
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        when(operationService.createDeposit(null, null))
+                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        mvc.perform(put(PUT_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(operationService).createDeposit(null, null);
+    }
+
+    @Test
+    void catchNullUserIdExceptionWhenTakeMoney() throws Exception {
+        CashOrderDto order = new CashOrderDto();
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        when(operationService.createWithdrawal(null, null))
+                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        mvc.perform(put(TAKE_MONEY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonOrder))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json(expected, true));
+        verify(operationService).createWithdrawal(null, null);
+    }
+
+    @Test
+    void catchNullUserIdExceptionWhenTransferMoney() throws Exception {
+        PaymentOrderDto order = new PaymentOrderDto();
+        String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
+        ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
+        String expected = OBJECT_MAPPER.writeValueAsString(response);
+        when(transferService.createTransfer(null, null, null))
+                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
