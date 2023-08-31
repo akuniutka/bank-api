@@ -246,21 +246,22 @@ class OperationServiceTest {
 
     @Test
     void testCreateIncomingTransferWhenUserIdIsNull() {
-        when(accountService.increaseUserBalance(null, TEN)).thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        when(accountService.increaseUserBalance(null, TEN))
+                .thenThrow(new NullUserIdException(RECEIVER_ID_IS_NULL));
         Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createIncomingTransfer(null, TEN, dateTo)
         );
-        assertEquals(USER_ID_IS_NULL, e.getMessage());
+        assertEquals(RECEIVER_ID_IS_NULL, e.getMessage());
         verify(accountService).increaseUserBalance(null, TEN);
     }
 
     @Test
     void testCreateIncomingTransferWhenUserDoesNotExist() {
-        when(accountService.increaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        when(accountService.increaseUserBalance(USER_ID, TEN)).thenThrow(new UserNotFoundException(RECEIVER_NOT_FOUND));
         Exception e = assertThrows(UserNotFoundException.class,
                 () -> service.createIncomingTransfer(USER_ID, TEN, dateTo)
         );
-        assertEquals(USER_NOT_FOUND, e.getMessage());
+        assertEquals(RECEIVER_NOT_FOUND, e.getMessage());
         verify(accountService).increaseUserBalance(USER_ID, TEN);
     }
 

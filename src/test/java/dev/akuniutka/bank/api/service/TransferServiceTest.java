@@ -70,7 +70,7 @@ class TransferServiceTest {
         });
         when(operationService.createIncomingTransfer(eq(null), eq(TEN), any(Date.class))).thenAnswer(a -> {
             assertEquals(transferDate, a.getArguments()[2]);
-            throw new NullUserIdException(USER_ID_IS_NULL);
+            throw new NullUserIdException(RECEIVER_ID_IS_NULL);
         });
         Exception e = assertThrows(NullUserIdException.class,
                 () -> service.createTransfer(USER_ID, null, TEN)
@@ -99,7 +99,7 @@ class TransferServiceTest {
         });
         when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(TEN), any(Date.class))).thenAnswer(a -> {
             assertEquals(transferDate, a.getArguments()[2]);
-            throw new UserNotFoundException(USER_NOT_FOUND);
+            throw new UserNotFoundException(RECEIVER_NOT_FOUND);
         });
         Exception e = assertThrows(UserNotFoundException.class,
                 () -> service.createTransfer(USER_ID, RECEIVER_ID, TEN)
