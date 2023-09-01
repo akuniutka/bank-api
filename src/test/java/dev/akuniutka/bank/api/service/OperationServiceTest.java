@@ -114,9 +114,8 @@ class OperationServiceTest {
         when(accountService.increaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation actual = service.createDeposit(USER_ID, TEN_THOUSANDTHS);
+        assertDoesNotThrow(() -> service.createDeposit(USER_ID, TEN_THOUSANDTHS));
         Date finish = new Date();
-        assertEquals(operation, actual);
         assertNotNull(storedOperation);
         assertNull(storedOperation.getId());
         assertEquals(account, storedOperation.getAccount());
@@ -132,9 +131,8 @@ class OperationServiceTest {
         when(accountService.increaseUserBalance(USER_ID, TEN)).thenReturn(account);
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation actual = service.createDeposit(USER_ID, TEN);
+        assertDoesNotThrow(() -> service.createDeposit(USER_ID, TEN));
         Date finish = new Date();
-        assertEquals(operation, actual);
         assertNotNull(storedOperation);
         assertNull(storedOperation.getId());
         assertEquals(account, storedOperation.getAccount());
@@ -213,9 +211,8 @@ class OperationServiceTest {
         when(accountService.decreaseUserBalance(USER_ID, TEN_THOUSANDTHS)).thenReturn(account);
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation actual = service.createWithdrawal(USER_ID, TEN_THOUSANDTHS);
+        assertDoesNotThrow(() -> service.createWithdrawal(USER_ID, TEN_THOUSANDTHS));
         Date finish = new Date();
-        assertEquals(operation, actual);
         assertNotNull(storedOperation);
         assertNull(storedOperation.getId());
         assertEquals(account, storedOperation.getAccount());
@@ -231,9 +228,8 @@ class OperationServiceTest {
         when(accountService.decreaseUserBalance(USER_ID, ONE)).thenReturn(account);
         when(repository.save(any(Operation.class))).thenAnswer(a -> storeOperation(a.getArguments()[0]));
         Date start = new Date();
-        Operation actual = service.createWithdrawal(USER_ID, ONE);
+        assertDoesNotThrow(() -> service.createWithdrawal(USER_ID, ONE));
         Date finish = new Date();
-        assertEquals(operation, actual);
         assertNotNull(storedOperation);
         assertNull(storedOperation.getId());
         assertEquals(account, storedOperation.getAccount());

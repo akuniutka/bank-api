@@ -18,13 +18,13 @@ public class TransferService {
         this.operationService = operationService;
     }
 
-    public Transfer createTransfer(Long payerId, Long payeeId, BigDecimal amount) {
+    public void createTransfer(Long payerId, Long payeeId, BigDecimal amount) {
         Date date = new Date();
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);
         Operation incomingTransfer = operationService.createIncomingTransfer(payeeId, amount, date);
         Transfer transfer = new Transfer();
         transfer.setOutgoingTransfer(outgoingTransfer);
         transfer.setIncomingTransfer(incomingTransfer);
-        return repository.save(transfer);
+        repository.save(transfer);
     }
 }

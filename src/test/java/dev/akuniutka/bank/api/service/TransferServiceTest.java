@@ -169,7 +169,7 @@ class TransferServiceTest {
     }
 
     @Test
-    void testTransferMoneyWhenBalanceIsSufficient() {
+    void testCreateTransferWhenBalanceIsSufficient() {
         BigDecimal amount = TEN;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
             storeTransferDate(a.getArguments()[2]);
@@ -180,8 +180,7 @@ class TransferServiceTest {
             return incomingTransfer;
         });
         when(repository.save(any(Transfer.class))).thenAnswer(a -> storeTransfer(a.getArguments()[0]));
-        Transfer actual = service.createTransfer(USER_ID, RECEIVER_ID, amount);
-        assertEquals(transfer, actual);
+        assertDoesNotThrow(() -> service.createTransfer(USER_ID, RECEIVER_ID, amount));
         assertNotNull(storedTransfer);
         assertEquals(outgoingTransfer, storedTransfer.getOutgoingTransfer());
         assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());
@@ -191,7 +190,7 @@ class TransferServiceTest {
     }
 
     @Test
-    void testTransferMoneyWhenScaleIsGreaterThatTwoButWithZeros() {
+    void testCreateTransferWhenScaleIsGreaterThatTwoButWithZeros() {
         BigDecimal amount = TEN_THOUSANDTHS;
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class))).thenAnswer(a -> {
             storeTransferDate(a.getArguments()[2]);
@@ -202,8 +201,7 @@ class TransferServiceTest {
             return incomingTransfer;
         });
         when(repository.save(any(Transfer.class))).thenAnswer(a -> storeTransfer(a.getArguments()[0]));
-        Transfer actual = service.createTransfer(USER_ID, RECEIVER_ID, amount);
-        assertEquals(transfer, actual);
+        assertDoesNotThrow(() -> service.createTransfer(USER_ID, RECEIVER_ID, amount));
         assertNotNull(storedTransfer);
         assertEquals(outgoingTransfer, storedTransfer.getOutgoingTransfer());
         assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());

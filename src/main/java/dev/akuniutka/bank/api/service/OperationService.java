@@ -23,24 +23,24 @@ public class OperationService {
         this.accountService = accountService;
     }
 
-    public Operation createDeposit(Long userId, BigDecimal amount) {
+    public void createDeposit(Long userId, BigDecimal amount) {
         Account account = accountService.increaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.DEPOSIT);
         operation.setAmount(amount);
         operation.setDate(new Date());
-        return repository.save(operation);
+        repository.save(operation);
     }
 
-    public Operation createWithdrawal(Long userId, BigDecimal amount) {
+    public void createWithdrawal(Long userId, BigDecimal amount) {
         Account account = accountService.decreaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
         operation.setType(OperationType.WITHDRAWAL);
         operation.setAmount(amount);
         operation.setDate(new Date());
-        return repository.save(operation);
+        repository.save(operation);
     }
 
     public Operation createIncomingTransfer(Long userId, BigDecimal amount, Date date) {

@@ -8,7 +8,6 @@ import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.service.AccountService;
 import dev.akuniutka.bank.api.service.OperationService;
 import dev.akuniutka.bank.api.service.TransferService;
@@ -91,14 +90,13 @@ class ApiControllerTest {
 
     @Test
     void testPutMoney() throws Exception {
-        Operation operation = mock(Operation.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(USER_ID);
         order.setAmount(TEN);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        when(operationService.createDeposit(USER_ID, TEN)).thenReturn(operation);
+        doNothing().when(operationService).createDeposit(USER_ID, TEN);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -107,19 +105,17 @@ class ApiControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
         verify(operationService).createDeposit(USER_ID, TEN);
-        verifyNoMoreInteractions(ignoreStubs(operation));
     }
 
     @Test
     void testTakeMoney() throws Exception {
-        Operation operation = mock(Operation.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         CashOrderDto order = new CashOrderDto();
         order.setUserId(USER_ID);
         order.setAmount(ONE);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        when(operationService.createWithdrawal(USER_ID, ONE)).thenReturn(operation);
+        doNothing().when(operationService).createWithdrawal(USER_ID, ONE);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -128,12 +124,10 @@ class ApiControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
         verify(operationService).createWithdrawal(USER_ID, ONE);
-        verifyNoMoreInteractions(ignoreStubs(operation));
     }
 
     @Test
     void testTransferMoney() throws Exception {
-        Transfer transfer = mock(Transfer.class);
         ResponseDto response = new ResponseDto(ONE);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
         PaymentOrderDto order = new PaymentOrderDto();
@@ -141,7 +135,7 @@ class ApiControllerTest {
         order.setReceiverId(RECEIVER_ID);
         order.setAmount(TEN);
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
-        when(transferService.createTransfer(USER_ID, RECEIVER_ID, TEN)).thenReturn(transfer);
+        doNothing().when(transferService).createTransfer(USER_ID, RECEIVER_ID, TEN);
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -150,9 +144,7 @@ class ApiControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().json(expected, true));
         verify(transferService).createTransfer(USER_ID, RECEIVER_ID, TEN);
-        verifyNoMoreInteractions(ignoreStubs(transfer));
     }
-
 
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNull() throws Exception {

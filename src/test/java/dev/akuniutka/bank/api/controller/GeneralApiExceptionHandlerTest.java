@@ -73,7 +73,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createDeposit(USER_ID, TEN)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(operationService).createDeposit(USER_ID, TEN);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -92,7 +92,7 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createWithdrawal(USER_ID, ONE)).thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        doThrow(new UserNotFoundException(USER_NOT_FOUND)).when(operationService).createWithdrawal(USER_ID, ONE);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -112,8 +112,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_NOT_FOUND);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(transferService.createTransfer(USER_ID, RECEIVER_ID, TEN))
-                .thenThrow(new UserNotFoundException(USER_NOT_FOUND));
+        doThrow(new UserNotFoundException(USER_NOT_FOUND))
+                .when(transferService).createTransfer(USER_ID, RECEIVER_ID, TEN);
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -144,8 +144,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, AMOUNT_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createDeposit(null, null))
-                .thenThrow(new WrongAmountException(AMOUNT_IS_NULL));
+        doThrow(new WrongAmountException(AMOUNT_IS_NULL))
+                .when(operationService).createDeposit(null, null);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -162,8 +162,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, AMOUNT_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createWithdrawal(null, null))
-                .thenThrow(new WrongAmountException(AMOUNT_IS_NULL));
+        doThrow(new WrongAmountException(AMOUNT_IS_NULL))
+                .when(operationService).createWithdrawal(null, null);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -180,8 +180,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, AMOUNT_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(transferService.createTransfer(null, null, null))
-                .thenThrow(new WrongAmountException(AMOUNT_IS_NULL));
+        doThrow(new WrongAmountException(AMOUNT_IS_NULL))
+                .when(transferService).createTransfer(null, null, null);
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -198,8 +198,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createDeposit(null, null))
-                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        doThrow(new NullUserIdException(USER_ID_IS_NULL))
+                .when(operationService).createDeposit(null, null);
         mvc.perform(put(PUT_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -216,8 +216,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(operationService.createWithdrawal(null, null))
-                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        doThrow(new NullUserIdException(USER_ID_IS_NULL))
+                .when(operationService).createWithdrawal(null, null);
         mvc.perform(put(TAKE_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
@@ -234,8 +234,8 @@ class GeneralApiExceptionHandlerTest {
         String jsonOrder = OBJECT_MAPPER.writeValueAsString(order);
         ResponseDto response = new ResponseDto(ZERO, USER_ID_IS_NULL);
         String expected = OBJECT_MAPPER.writeValueAsString(response);
-        when(transferService.createTransfer(null, null, null))
-                .thenThrow(new NullUserIdException(USER_ID_IS_NULL));
+        doThrow(new NullUserIdException(USER_ID_IS_NULL))
+                .when(transferService).createTransfer(null, null, null);
         mvc.perform(put(TRANSFER_MONEY)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonOrder))
