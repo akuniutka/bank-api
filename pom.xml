@@ -11,7 +11,7 @@
 
     <groupId>dev.akuniutka</groupId>
     <artifactId>bank-api</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.1-SNAPSHOT</version>
 
     <name>Bank API</name>
     <description>Bank API</description>
