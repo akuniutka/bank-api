@@ -13,44 +13,44 @@ class TransferTest {
     }
 
     @Test
-    void testGetDebit() {
+    void testGetOutgoingTransfer() {
         Transfer transfer = new Transfer();
-        assertNull(transfer.getDebit());
+        assertNull(transfer.getOutgoingTransfer());
     }
 
     @Test
-    void testSetDebitWhenOperationIsNull() {
+    void testSetOutgoingTransferWhenOperationIsNull() {
         Transfer transfer = new Transfer();
-        Exception e = assertThrows(IllegalArgumentException.class, () -> transfer.setDebit(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> transfer.setOutgoingTransfer(null));
         assertEquals(TRANSFER_DEBIT_IS_NULL, e.getMessage());
     }
 
     @Test
-    void testSetDebitWhenOperationIsNotNull() {
+    void testSetOutgoingTransferWhenOperationIsNotNull() {
         Operation operation = new Operation();
         Transfer transfer = new Transfer();
-        transfer.setDebit(operation);
-        assertEquals(operation, transfer.getDebit());
+        transfer.setOutgoingTransfer(operation);
+        assertEquals(operation, transfer.getOutgoingTransfer());
     }
 
     @Test
-    void testGetCredit() {
+    void testGetIncomingTransfer() {
         Transfer transfer = new Transfer();
-        assertNull(transfer.getCredit());
+        assertNull(transfer.getIncomingTransfer());
     }
 
     @Test
-    void testSetCreditWhenOperationIsNull() {
+    void testSetIncomingTransferWhenOperationIsNull() {
         Transfer transfer = new Transfer();
-        Exception e = assertThrows(IllegalArgumentException.class, () -> transfer.setCredit(null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> transfer.setIncomingTransfer(null));
         assertEquals(TRANSFER_CREDIT_IS_NULL, e.getMessage());
     }
 
     @Test
-    void testSetCreditWhenOperationIsNotNull() {
+    void testSetIncomingTransferWhenOperationIsNotNull() {
         Operation operation = new Operation();
         Transfer transfer = new Transfer();
-        transfer.setCredit(operation);
-        assertEquals(operation, transfer.getCredit());
+        transfer.setIncomingTransfer(operation);
+        assertEquals(operation, transfer.getIncomingTransfer());
     }
 }

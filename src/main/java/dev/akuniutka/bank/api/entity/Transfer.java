@@ -10,35 +10,35 @@ public class Transfer {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "DEBIT_ID", referencedColumnName = "id", nullable = false)
-    private Operation debit;
+    @JoinColumn(name = "OUTGOING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
+    private Operation outgoingTransfer;
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CREDIT_ID", referencedColumnName = "id", nullable = false)
-    private Operation credit;
+    @JoinColumn(name = "INCOMING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
+    private Operation incomingTransfer;
 
     public Long getId() {
         return id;
     }
 
-    public void setDebit(Operation debit) {
-        if (debit == null) {
+    public void setOutgoingTransfer(Operation outgoingTransfer) {
+        if (outgoingTransfer == null) {
             throw new IllegalArgumentException(ErrorMessage.TRANSFER_DEBIT_IS_NULL);
         }
-        this.debit = debit;
+        this.outgoingTransfer = outgoingTransfer;
     }
 
-    public Operation getDebit() {
-        return debit;
+    public Operation getOutgoingTransfer() {
+        return outgoingTransfer;
     }
 
-    public void setCredit(Operation credit) {
-        if (credit == null) {
+    public void setIncomingTransfer(Operation incomingTransfer) {
+        if (incomingTransfer == null) {
             throw new IllegalArgumentException(ErrorMessage.TRANSFER_CREDIT_IS_NULL);
         }
-        this.credit = credit;
+        this.incomingTransfer = incomingTransfer;
     }
 
-    public Operation getCredit() {
-        return credit;
+    public Operation getIncomingTransfer() {
+        return incomingTransfer;
     }
 }

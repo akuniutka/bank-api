@@ -23,8 +23,8 @@ public class TransferService {
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);
         Operation incomingTransfer = operationService.createIncomingTransfer(payeeId, amount, date);
         Transfer transfer = new Transfer();
-        transfer.setDebit(outgoingTransfer);
-        transfer.setCredit(incomingTransfer);
+        transfer.setOutgoingTransfer(outgoingTransfer);
+        transfer.setIncomingTransfer(incomingTransfer);
         return repository.save(transfer);
     }
 }

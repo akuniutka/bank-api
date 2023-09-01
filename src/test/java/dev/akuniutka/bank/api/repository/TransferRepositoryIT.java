@@ -19,9 +19,11 @@ class TransferRepositoryIT {
     private  TransferRepository repository;
 
     @Test
-    void findByDebit() {
-        Operation debit = operations.findById(26L).orElseThrow(() -> new RuntimeException("operation does not exist"));
-        List<Transfer> transfers = repository.findByDebit(debit);
+    void findByOutgoingTransfer() {
+        Operation outgoingTransfer = operations.findById(26L).orElseThrow(
+                () -> new RuntimeException("operation does not exist")
+        );
+        List<Transfer> transfers = repository.findByOutgoingTransfer(outgoingTransfer);
         assertNotNull(transfers);
         assertEquals(1, transfers.size());
         Transfer transfer = transfers.get(0);
@@ -30,9 +32,11 @@ class TransferRepositoryIT {
     }
 
     @Test
-    void findByCredit() {
-        Operation credit = operations.findById(29L).orElseThrow(() -> new RuntimeException("operation does not exist"));
-        List<Transfer> transfers = repository.findByCredit(credit);
+    void findByIncomingTransfer() {
+        Operation incomingTransfer = operations.findById(29L).orElseThrow(
+                () -> new RuntimeException("operation does not exist")
+        );
+        List<Transfer> transfers = repository.findByIncomingTransfer(incomingTransfer);
         assertNotNull(transfers);
         assertEquals(1, transfers.size());
         Transfer transfer = transfers.get(0);

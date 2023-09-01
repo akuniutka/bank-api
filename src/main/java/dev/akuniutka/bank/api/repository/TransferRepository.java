@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface TransferRepository extends CrudRepository<Transfer, Long> {
-    List<Transfer> findByDebit(Operation debit);
-    List<Transfer> findByCredit(Operation credit);
+    List<Transfer> findByOutgoingTransfer(Operation outgoingTransfer);
+    List<Transfer> findByIncomingTransfer(Operation incomingTransfer);
 }

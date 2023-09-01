@@ -183,8 +183,8 @@ class TransferServiceTest {
         Transfer actual = service.createTransfer(USER_ID, RECEIVER_ID, amount);
         assertEquals(transfer, actual);
         assertNotNull(storedTransfer);
-        assertEquals(outgoingTransfer, storedTransfer.getDebit());
-        assertEquals(incomingTransfer, storedTransfer.getCredit());
+        assertEquals(outgoingTransfer, storedTransfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());
         verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
         verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class));
         verify(repository).save(any(Transfer.class));
@@ -205,8 +205,8 @@ class TransferServiceTest {
         Transfer actual = service.createTransfer(USER_ID, RECEIVER_ID, amount);
         assertEquals(transfer, actual);
         assertNotNull(storedTransfer);
-        assertEquals(outgoingTransfer, storedTransfer.getDebit());
-        assertEquals(incomingTransfer, storedTransfer.getCredit());
+        assertEquals(outgoingTransfer, storedTransfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());
         verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(Date.class));
         verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(Date.class));
         verify(repository).save(any(Transfer.class));
