@@ -215,7 +215,7 @@ class TransferServiceTest {
             if (transferDate == null) {
                 transferDate = (Date) o;
             } else {
-                throw  new RuntimeException("transfer date already stored");
+                throw new RuntimeException("transfer date already stored");
             }
         } else {
             throw new IllegalArgumentException("argument is not of Date type");

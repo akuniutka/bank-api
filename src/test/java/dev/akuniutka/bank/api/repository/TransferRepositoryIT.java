@@ -10,13 +10,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TransferRepositoryIT {
     @Autowired
     private OperationRepository operations;
     @Autowired
-    private  TransferRepository repository;
+    private TransferRepository repository;
 
     @Test
     void findByOutgoingTransfer() {
