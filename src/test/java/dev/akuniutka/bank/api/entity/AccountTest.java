@@ -60,7 +60,7 @@ class AccountTest {
     @Test
     void testSetBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(WrongAmountException.class, () -> account.setBalance(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> account.setBalance(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -108,7 +108,7 @@ class AccountTest {
     @Test
     void testIncreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(WrongAmountException.class, () -> account.increaseBalance(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> account.increaseBalance(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -170,7 +170,7 @@ class AccountTest {
     @Test
     void testDecreaseBalanceWhenAmountIsNull() {
         Account account = new Account();
-        Exception e = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> account.decreaseBalance(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 }

@@ -16,7 +16,6 @@ public class ErrorMessage {
     public static final String OPERATIONS_NOT_FOUND = "operations not found";
     public static final String TRANSFER_DEBIT_IS_NULL = "transfer debit is null";
     public static final String TRANSFER_CREDIT_IS_NULL = "transfer credit is null";
-    public static final String TRANSFER_IS_NULL = "transfer is null";
     public static final String RECEIVER_ID_IS_NULL = "receiver id is null";
     public static final String RECEIVER_NOT_FOUND = "receiver not found";
 }

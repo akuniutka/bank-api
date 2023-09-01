@@ -40,7 +40,7 @@ class AmountValidatorTest {
 
     @Test
     void testAssertBalanceWhenAmountIsNull() {
-        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertBalance(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertBalance(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
@@ -74,7 +74,7 @@ class AmountValidatorTest {
 
     @Test
     void testAssertAmountWhenAmountIsNull() {
-        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> AmountValidator.assertAmount(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 }

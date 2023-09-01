@@ -21,7 +21,7 @@ public class DateChecker {
             throw new IllegalArgumentException("wrong argument type");
         }
         if (date == null || start == null || finish == null || start.compareTo(date) * date.compareTo(finish) < 0) {
-                throw new IllegalArgumentException("not between");
+            throw new IllegalArgumentException("not between");
         }
         return true;
     }

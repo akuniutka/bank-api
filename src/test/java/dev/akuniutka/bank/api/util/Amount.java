@@ -26,5 +26,4 @@ public class Amount {
             .divide(BigDecimal.TEN, RoundingMode.HALF_UP);
     public static final BigDecimal MINUS_ONE = BigDecimal.ONE.negate();
     public static final BigDecimal MINUS_TEN = BigDecimal.TEN.negate();
-    public static final BigDecimal NULL = null;
 }

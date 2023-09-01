@@ -176,7 +176,7 @@ class ApiControllerIT {
     @Test
     void testPutMoneyWhenUserExistsAndAmountIsNull() throws Exception {
         Long userId = 1059L;
-        CashOrderDto order = cashOrderFrom(userId, NULL);
+        CashOrderDto order = cashOrderFrom(userId, null);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isBadRequest()
@@ -339,7 +339,7 @@ class ApiControllerIT {
     @Test
     void testTakeMoneyWhenUserExistsAndAmountIsNull() throws Exception {
         Long userId = 1067L;
-        CashOrderDto order = cashOrderFrom(userId, NULL);
+        CashOrderDto order = cashOrderFrom(userId, null);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isBadRequest()
@@ -418,7 +418,7 @@ class ApiControllerIT {
     void testTransferMoneyWhenAmountIsNull() throws Exception {
         Long userId = 1077L;
         Long receiverId = 1078L;
-        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, NULL);
+        PaymentOrderDto order = paymentOrderFrom(userId, receiverId, null);
         String expected = jsonResponseFrom(ZERO, AMOUNT_IS_NULL);
         put(webTestClient, TRANSFER_MONEY, order)
                 .expectStatus().isBadRequest()

@@ -34,13 +34,13 @@ class ResponseDtoTest {
 
     @Test
     void testResponseDtoWhenResultIsNullAndMessageIsNotNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(NULL, MESSAGE));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(null, MESSAGE));
         assertEquals(RESULT_IS_NULL, e.getMessage());
     }
 
     @Test
     void testResponseDtoWhenResultIsNullAndMessageIsNull() {
-        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(NULL, null));
+        Exception e = assertThrows(IllegalArgumentException.class, () -> new ResponseDto(null, null));
         assertEquals(RESULT_IS_NULL, e.getMessage());
     }
 

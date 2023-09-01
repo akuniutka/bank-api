@@ -101,7 +101,7 @@ class OperationTest {
     @Test
     void testSetAmountWhenAmountIsNull() {
         Operation operation = new Operation();
-        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(NULL));
+        Exception e = assertThrows(WrongAmountException.class, () -> operation.setAmount(null));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());
     }
 
