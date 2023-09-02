@@ -5,6 +5,7 @@ import dev.akuniutka.bank.api.entity.Transfer;
 import dev.akuniutka.bank.api.repository.TransferRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -18,6 +19,7 @@ public class TransferService {
         this.operationService = operationService;
     }
 
+    @Transactional
     public void createTransfer(Long payerId, Long payeeId, BigDecimal amount) {
         Date date = new Date();
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);

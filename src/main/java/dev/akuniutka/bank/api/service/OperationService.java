@@ -9,6 +9,7 @@ import dev.akuniutka.bank.api.repository.OperationRepository;
 import dev.akuniutka.bank.api.util.ErrorMessage;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +24,7 @@ public class OperationService {
         this.accountService = accountService;
     }
 
+    @Transactional
     public void createDeposit(Long userId, BigDecimal amount) {
         Account account = accountService.increaseUserBalance(userId, amount);
         Operation operation = new Operation();
@@ -33,6 +35,7 @@ public class OperationService {
         repository.save(operation);
     }
 
+    @Transactional
     public void createWithdrawal(Long userId, BigDecimal amount) {
         Account account = accountService.decreaseUserBalance(userId, amount);
         Operation operation = new Operation();
@@ -69,6 +72,7 @@ public class OperationService {
         return repository.save(operation);
     }
 
+    @Transactional
     public List<Operation> getUserOperations(Long userId, Date dateFrom, Date dateTo) {
         Account account = accountService.getAccount(userId);
         if (dateFrom == null && dateTo == null) {

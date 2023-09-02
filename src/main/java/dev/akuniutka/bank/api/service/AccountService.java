@@ -7,6 +7,7 @@ import dev.akuniutka.bank.api.exception.UserNotFoundException;
 import dev.akuniutka.bank.api.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 @Service
@@ -24,6 +25,7 @@ public class AccountService {
         return repository.findById(userId).orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
     }
 
+    @Transactional
     public BigDecimal getUserBalance(Long userId) {
         return getAccount(userId).getBalance();
     }
