@@ -3,12 +3,12 @@ package dev.akuniutka.bank.api.dto;
 import dev.akuniutka.bank.api.entity.Operation;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 public class OperationDto {
-    private final Date date;
+    private final OffsetDateTime date;
     private final String type;
     private final BigDecimal amount;
 
@@ -22,13 +22,13 @@ public class OperationDto {
         } else if (operation.getAmount() == null) {
             throw new IllegalArgumentException(AMOUNT_IS_NULL);
         }
-        date = (Date) operation.getDate().clone();
+        date = operation.getDate();
         type = operation.getType().getDescription();
         amount = operation.getAmount();
     }
 
-    public Date getDate() {
-        return (Date) date.clone();
+    public OffsetDateTime getDate() {
+        return date;
     }
 
     public String getType() {

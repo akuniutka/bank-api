@@ -5,7 +5,7 @@ import dev.akuniutka.bank.api.entity.OperationType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
@@ -18,7 +18,7 @@ class OperationDtoTest {
     static void init() {
         OPERATION.setType(OperationType.DEPOSIT);
         OPERATION.setAmount(TEN);
-        OPERATION.setDate(new Date());
+        OPERATION.setDate(OffsetDateTime.now());
     }
 
     @Test
@@ -39,7 +39,7 @@ class OperationDtoTest {
     @Test
     void testOperationDtoWhenTypeIsNull() {
         Operation operation = new Operation();
-        operation.setDate(new Date());
+        operation.setDate(OffsetDateTime.now());
         operation.setAmount(TEN);
         Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
         assertEquals(OPERATION_TYPE_IS_NULL, e.getMessage());
@@ -48,7 +48,7 @@ class OperationDtoTest {
     @Test
     void testOperationDtoWhenAmountIsNull() {
         Operation operation = new Operation();
-        operation.setDate(new Date());
+        operation.setDate(OffsetDateTime.now());
         operation.setType(OperationType.DEPOSIT);
         Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
         assertEquals(AMOUNT_IS_NULL, e.getMessage());

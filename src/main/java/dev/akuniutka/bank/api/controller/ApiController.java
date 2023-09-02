@@ -16,12 +16,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @RestController
 public class ApiController {
+    private static final ZoneOffset OFFSET = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
     private static final ResponseDto OK = new ResponseDto(BigDecimal.ONE);
     private final AccountService accountService;
     private final OperationService operationService;
@@ -71,11 +72,13 @@ public class ApiController {
     @Operation(summary = "Get the list of operations for a selected user (all or foe specified period)")
     public List<OperationDto> getOperationList(
             @PathVariable Long userId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") Date dateTo
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dateTo
     ) {
         List<dev.akuniutka.bank.api.entity.Operation> operations = operationService.getUserOperations(
-                userId, dateFrom, dateTo
+                userId,
+                dateFrom == null ? null : OffsetDateTime.of(dateFrom, LocalTime.MIDNIGHT, OFFSET),
+                dateTo == null ? null : OffsetDateTime.of(dateTo, LocalTime.MIDNIGHT, OFFSET)
         );
         if (operations.isEmpty()) {
             throw new OperationsNotFoundException(ErrorMessage.OPERATIONS_NOT_FOUND);

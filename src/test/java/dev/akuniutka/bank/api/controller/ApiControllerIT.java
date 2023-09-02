@@ -17,11 +17,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
@@ -32,6 +29,7 @@ import static dev.akuniutka.bank.api.util.WebTestClientWrapper.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ApiControllerIT {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ZoneOffset OFFSET = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
     private static final String GET_BALANCE = "/getBalance/{userId}";
     private static final String PUT_MONEY = "/putMoney";
     private static final String TAKE_MONEY = "/takeMoney";
@@ -43,10 +41,11 @@ class ApiControllerIT {
 
     @BeforeAll
     static void init() {
+        OBJECT_MAPPER.findAndRegisterModules();
         OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        Calendar calendar = Calendar.getInstance();
-        calendar.clear();
-        calendar.set(2023, Calendar.JANUARY, 1);
+        OffsetDateTime date = OffsetDateTime.of(LocalDate.parse("2023-01-01"), LocalTime.MIDNIGHT, OFFSET);
+        ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
+        date = date.withOffsetSameInstant(offset);
         for (int i = 0; i < 12; i++) {
             Operation operation = new Operation();
             if (i < 2) {
@@ -56,8 +55,8 @@ class ApiControllerIT {
                 operation.setType(OperationType.WITHDRAWAL);
                 operation.setAmount(ONE);
             }
-            operation.setDate(calendar.getTime());
-            calendar.add(Calendar.MONTH, 1);
+            operation.setDate(date);
+            date = date.plusMonths(1L);
             DTO_LIST.add(new OperationDto(operation));
         }
     }
@@ -87,20 +86,18 @@ class ApiControllerIT {
         Long userId = 1054L;
         CashOrderDto order = cashOrderFrom(userId, TEN);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -116,20 +113,18 @@ class ApiControllerIT {
         Long userId = 1055L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, PUT_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN_THOUSANDTHS);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -210,20 +205,18 @@ class ApiControllerIT {
         Long userId = 1060L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -239,20 +232,18 @@ class ApiControllerIT {
         Long userId = 1061L;
         CashOrderDto order = cashOrderFrom(userId, ONE);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_ZERO);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -268,20 +259,18 @@ class ApiControllerIT {
         Long userId = 1062L;
         CashOrderDto order = cashOrderFrom(userId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TAKE_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -480,12 +469,12 @@ class ApiControllerIT {
         Long receiverId = 1088L;
         PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TRANSFER_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
@@ -495,9 +484,7 @@ class ApiControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -506,7 +493,7 @@ class ApiControllerIT {
                 .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
                 .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
                 .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
-        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, receiverId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -523,12 +510,12 @@ class ApiControllerIT {
         Long receiverId = 1090L;
         PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TRANSFER_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_ZERO);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
@@ -539,9 +526,7 @@ class ApiControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -550,7 +535,7 @@ class ApiControllerIT {
                 .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
                 .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN.setScale(1, RoundingMode.HALF_UP))
                 .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
-        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, receiverId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -567,12 +552,12 @@ class ApiControllerIT {
         Long receiverId = 1092L;
         PaymentOrderDto order = paymentOrderFrom(userId, receiverId, TEN_THOUSANDTHS);
         String expected = jsonResponseFrom(ONE);
-        Date start = new Date();
+        OffsetDateTime start = OffsetDateTime.now();
         put(webTestClient, TRANSFER_MONEY, order)
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        Date finish = new Date();
+        OffsetDateTime finish = OffsetDateTime.now();
         expected = jsonResponseFrom(FORMATTED_TEN);
         get(webTestClient, GET_BALANCE, userId)
                 .expectStatus().isOk()
@@ -583,9 +568,7 @@ class ApiControllerIT {
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody().json(expected, true);
-        LocalDate dateFrom = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate dateTo = finish.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().plusDays(1L);
-        get(webTestClient, GET_OPERATIONS, userId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, userId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
@@ -594,7 +577,7 @@ class ApiControllerIT {
                 .jsonPath("$[0].type").isEqualTo(OperationType.OUTGOING_TRANSFER.getDescription())
                 .jsonPath("$[0].amount").isEqualTo(FORMATTED_TEN_THOUSANDTHS)
                 .jsonPath("$[0].date").value(d -> isDateBetween(d, start, finish));
-        get(webTestClient, GET_OPERATIONS, receiverId, dateFrom, dateTo)
+        get(webTestClient, GET_OPERATIONS, receiverId, start.toLocalDate(), finish.toLocalDate().plusDays(1L))
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()

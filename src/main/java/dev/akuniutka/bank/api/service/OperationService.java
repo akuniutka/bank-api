@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -31,7 +31,7 @@ public class OperationService {
         operation.setAccount(account);
         operation.setType(OperationType.DEPOSIT);
         operation.setAmount(amount);
-        operation.setDate(new Date());
+        operation.setDate(OffsetDateTime.now());
         repository.save(operation);
     }
 
@@ -42,11 +42,11 @@ public class OperationService {
         operation.setAccount(account);
         operation.setType(OperationType.WITHDRAWAL);
         operation.setAmount(amount);
-        operation.setDate(new Date());
+        operation.setDate(OffsetDateTime.now());
         repository.save(operation);
     }
 
-    public Operation createIncomingTransfer(Long userId, BigDecimal amount, Date date) {
+    public Operation createIncomingTransfer(Long userId, BigDecimal amount, OffsetDateTime date) {
         try {
             Account account = accountService.increaseUserBalance(userId, amount);
             Operation operation = new Operation();
@@ -62,7 +62,7 @@ public class OperationService {
         }
     }
 
-    public Operation createOutgoingTransfer(Long userId, BigDecimal amount, Date date) {
+    public Operation createOutgoingTransfer(Long userId, BigDecimal amount, OffsetDateTime date) {
         Account account = accountService.decreaseUserBalance(userId, amount);
         Operation operation = new Operation();
         operation.setAccount(account);
@@ -73,7 +73,7 @@ public class OperationService {
     }
 
     @Transactional
-    public List<Operation> getUserOperations(Long userId, Date dateFrom, Date dateTo) {
+    public List<Operation> getUserOperations(Long userId, OffsetDateTime dateFrom, OffsetDateTime dateTo) {
         Account account = accountService.getAccount(userId);
         if (dateFrom == null && dateTo == null) {
             return repository.findByAccountOrderByDate(account);

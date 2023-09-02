@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Service
 public class TransferService {
@@ -21,7 +21,7 @@ public class TransferService {
 
     @Transactional
     public void createTransfer(Long payerId, Long payeeId, BigDecimal amount) {
-        Date date = new Date();
+        OffsetDateTime date = OffsetDateTime.now();
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);
         Operation incomingTransfer = operationService.createIncomingTransfer(payeeId, amount, date);
         Transfer transfer = new Transfer();

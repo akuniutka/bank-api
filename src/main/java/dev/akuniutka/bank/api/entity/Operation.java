@@ -6,7 +6,7 @@ import dev.akuniutka.bank.api.util.ErrorMessage;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Entity
 public class Operation {
@@ -22,7 +22,7 @@ public class Operation {
     @Access(AccessType.PROPERTY)
     private BigDecimal amount;
     @Column(nullable = false)
-    private Date date;
+    private OffsetDateTime date;
 
     public Long getId() {
         return id;
@@ -59,14 +59,14 @@ public class Operation {
         return amount;
     }
 
-    public void setDate(Date date) {
+    public void setDate(OffsetDateTime date) {
         if (date == null) {
             throw new IllegalArgumentException(ErrorMessage.DATE_IS_NULL);
         }
-        this.date = (Date) date.clone();
+        this.date = date;
     }
 
-    public Date getDate() {
-        return date == null ? null : (Date) date.clone();
+    public OffsetDateTime getDate() {
+        return date;
     }
 }

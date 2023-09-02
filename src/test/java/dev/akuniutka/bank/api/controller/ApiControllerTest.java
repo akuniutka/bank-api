@@ -21,11 +21,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,6 +37,7 @@ import static dev.akuniutka.bank.api.util.Amount.*;
 @WebMvcTest(ApiController.class)
 class ApiControllerTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ZoneOffset OFFSET = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
     private static final Long USER_ID = 1L;
     private static final Long RECEIVER_ID = 2L;
     private static final String GET_BALANCE = "/getBalance/{userId}";
@@ -59,6 +57,7 @@ class ApiControllerTest {
 
     @BeforeAll
     static void init() {
+        OBJECT_MAPPER.findAndRegisterModules();
         OBJECT_MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
@@ -162,13 +161,12 @@ class ApiControllerTest {
 
     @Test
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNull() throws Exception {
-        LocalDate dateFromForQuery = LocalDate.of(2022, Month.JANUARY, 1);
-        Date dateFrom = Date.from(dateFromForQuery.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        OffsetDateTime dateFrom = OffsetDateTime.of(LocalDate.parse("2022-01-01"), LocalTime.MIDNIGHT, OFFSET);
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
         when(operationService.getUserOperations(USER_ID, dateFrom, null)).thenReturn(operations);
-        mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFromForQuery, null))
+        mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFrom.toLocalDate(), null))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -178,13 +176,12 @@ class ApiControllerTest {
 
     @Test
     void testGetOperationListWhenDateFromIsNullAndDateToIsNotNull() throws Exception {
-        LocalDate dateToForQuery = LocalDate.of(2022, Month.JANUARY, 31);
-        Date dateTo = Date.from(dateToForQuery.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        OffsetDateTime dateTo = OffsetDateTime.of(LocalDate.parse("2022-01-31"), LocalTime.MIDNIGHT, OFFSET);
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
         when(operationService.getUserOperations(USER_ID, null, dateTo)).thenReturn(operations);
-        mvc.perform(get(GET_OPERATION_LIST, USER_ID, null, dateToForQuery))
+        mvc.perform(get(GET_OPERATION_LIST, USER_ID, null, dateTo.toLocalDate()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -194,15 +191,13 @@ class ApiControllerTest {
 
     @Test
     void testGetOperationListWhenDateFromIsNotNullAndDateToIsNotNull() throws Exception {
-        LocalDate dateFromForQuery = LocalDate.of(2022, Month.JANUARY, 1);
-        Date dateFrom = Date.from(dateFromForQuery.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        LocalDate dateToForQuery = LocalDate.of(2022, Month.JANUARY, 31);
-        Date dateTo = Date.from(dateToForQuery.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        OffsetDateTime dateFrom = OffsetDateTime.of(LocalDate.parse("2022-01-01"), LocalTime.MIDNIGHT, OFFSET);
+        OffsetDateTime dateTo = OffsetDateTime.of(LocalDate.parse("2022-01-31"), LocalTime.MIDNIGHT, OFFSET);
         List<Operation> operations = generateTestOperationList();
         List<OperationDto> dtoList = generateDtoListFromOperationList(operations);
         String expected = OBJECT_MAPPER.writeValueAsString(dtoList);
         when(operationService.getUserOperations(USER_ID, dateFrom, dateTo)).thenReturn(operations);
-        mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFromForQuery, dateToForQuery))
+        mvc.perform(get(GET_OPERATION_LIST, USER_ID, dateFrom.toLocalDate(), dateTo.toLocalDate()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -215,11 +210,11 @@ class ApiControllerTest {
         operations.add(new Operation());
         operations.get(0).setType(OperationType.DEPOSIT);
         operations.get(0).setAmount(TEN);
-        operations.get(0).setDate(new Date(0L));
+        operations.get(0).setDate(OffsetDateTime.now());
         operations.add(new Operation());
         operations.get(1).setType(OperationType.WITHDRAWAL);
         operations.get(1).setAmount(ONE);
-        operations.get(1).setDate(new Date(1L));
+        operations.get(1).setDate(OffsetDateTime.now().plusMonths(1L));
         return operations;
     }
 

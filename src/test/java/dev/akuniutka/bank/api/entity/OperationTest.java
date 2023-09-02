@@ -3,7 +3,8 @@ package dev.akuniutka.bank.api.entity;
 import dev.akuniutka.bank.api.exception.WrongAmountException;
 import org.junit.jupiter.api.Test;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
@@ -113,7 +114,7 @@ class OperationTest {
 
     @Test
     void testSetDateWhenDateIsNotNull() {
-        Date expected = new Date();
+        OffsetDateTime expected = OffsetDateTime.now();
         Operation operation = new Operation();
         operation.setDate(expected);
         assertEquals(expected, operation.getDate());
