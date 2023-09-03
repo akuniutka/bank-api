@@ -52,9 +52,7 @@ class TransferRepositoryIT {
         Operation incomingTransfer = operations.findById(31L).orElseThrow(
                 () -> new RuntimeException(OPERATIONS_NOT_FOUND)
         );
-        Transfer transfer = new Transfer();
-        transfer.setOutgoingTransfer(outgoingTransfer);
-        transfer.setIncomingTransfer(incomingTransfer);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
         transfer = repository.save(transfer);
         Long id = transfer.getId();
         Transfer actual = repository.findById(id).orElseThrow(() -> new RuntimeException("transfer not found"));

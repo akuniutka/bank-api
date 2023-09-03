@@ -12,16 +12,26 @@ public class Transfer {
     private Long id;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "OUTGOING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
+//    @Access(AccessType.PROPERTY)
     private Operation outgoingTransfer;
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "INCOMING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
+//    @Access(AccessType.PROPERTY)
     private Operation incomingTransfer;
+
+    protected Transfer() {}
+
+    public Transfer(Operation outgoingTransfer, Operation incomingTransfer) {
+        id = null;
+        setOutgoingTransfer(outgoingTransfer);
+        setIncomingTransfer(incomingTransfer);
+    }
 
     public Long getId() {
         return id;
     }
 
-    public void setOutgoingTransfer(Operation outgoingTransfer) {
+    protected void setOutgoingTransfer(Operation outgoingTransfer) {
         if (outgoingTransfer == null) {
             throw new IllegalArgumentException(ErrorMessage.TRANSFER_DEBIT_IS_NULL);
         } else if (!OperationType.OUTGOING_TRANSFER.equals(outgoingTransfer.getType())) {
@@ -36,7 +46,7 @@ public class Transfer {
         return outgoingTransfer;
     }
 
-    public void setIncomingTransfer(Operation incomingTransfer) {
+    protected void setIncomingTransfer(Operation incomingTransfer) {
         if (incomingTransfer == null) {
             throw new IllegalArgumentException(ErrorMessage.TRANSFER_CREDIT_IS_NULL);
         } else if (!OperationType.INCOMING_TRANSFER.equals(incomingTransfer.getType())) {

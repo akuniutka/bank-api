@@ -35,6 +35,240 @@ class TransferTest {
     }
 
     @Test
+    void testTransferWhenNoArgs() {
+        assertDoesNotThrow(() -> new Transfer());
+    }
+
+    @Test
+    void testTransferWhenOutgoingTransferIsNull() {
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(null, incomingTransfer)
+        );
+        assertEquals(TRANSFER_DEBIT_IS_NULL, e.getMessage());
+    }
+
+    @Test
+    void testTransferWhenOutgoingTransferOfWrongType() {
+        when(outgoingTransfer.getType()).thenReturn(OperationType.WITHDRAWAL);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(outgoingTransfer, incomingTransfer)
+        );
+        assertEquals(WRONG_OPERATION_TYPE, e.getMessage());
+        verify(outgoingTransfer).getType();
+    }
+
+    @Test
+    void testTransferWhenIncomingTransferIsNull() {
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(outgoingTransfer, null)
+        );
+        assertEquals(TRANSFER_CREDIT_IS_NULL, e.getMessage());
+        verify(outgoingTransfer).getType();
+    }
+
+    @Test
+    void testTransferWhenIncomingTransferOfWrongType() {
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(incomingTransfer.getType()).thenReturn(OperationType.DEPOSIT);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(outgoingTransfer, incomingTransfer)
+        );
+        assertEquals(WRONG_OPERATION_TYPE, e.getMessage());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+    }
+
+    @Test
+    void testTransferWhenFromTheSameAccount() {
+        when(payer.getId()).thenReturn(1L);
+        when(payee.getId()).thenReturn(1L);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        Exception e = assertThrows(BadRequestException.class,
+                () -> new Transfer(outgoingTransfer, incomingTransfer)
+        );
+        assertEquals(WRONG_OPERATION_ACCOUNT, e.getMessage());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+    }
+
+    @Test
+    void testTransferWhenAmountsAreNotEqual() {
+        when(payer.getId()).thenReturn(null);
+        when(payee.getId()).thenReturn(null);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_ONE);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(outgoingTransfer, incomingTransfer)
+        );
+        assertEquals(WRONG_OPERATION_AMOUNT, e.getMessage());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+    }
+
+    @Test
+    void testTransferWhenDatesAreNotEqual() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(payer.getId()).thenReturn(null);
+        when(payee.getId()).thenReturn(null);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(outgoingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(incomingTransfer.getDate()).thenReturn(date.plusMinutes(1L));
+        Exception e = assertThrows(IllegalArgumentException.class,
+                () -> new Transfer(outgoingTransfer, incomingTransfer)
+        );
+        assertEquals(WRONG_OPERATION_DATE, e.getMessage());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
+    }
+
+    @Test
+    void testTransferWhenBothAccountsAreNew() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(payer.getId()).thenReturn(null);
+        when(payee.getId()).thenReturn(null);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(outgoingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(incomingTransfer.getDate()).thenReturn(date);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
+        assertNotNull(transfer);
+        assertEquals(outgoingTransfer, transfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, transfer.getIncomingTransfer());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
+    }
+
+    @Test
+    void testTransferWhenPayerIsNew() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(payer.getId()).thenReturn(null);
+        when(payee.getId()).thenReturn(2L);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(outgoingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(incomingTransfer.getDate()).thenReturn(date);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
+        assertNotNull(transfer);
+        assertEquals(outgoingTransfer, transfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, transfer.getIncomingTransfer());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
+    }
+
+    @Test
+    void testTransferWhenPayeeIsNew() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(payer.getId()).thenReturn(1L);
+        when(payee.getId()).thenReturn(null);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(outgoingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(incomingTransfer.getDate()).thenReturn(date);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
+        assertNotNull(transfer);
+        assertEquals(outgoingTransfer, transfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, transfer.getIncomingTransfer());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
+    }
+
+    @Test
+    void testTransferWhenPayerAndPayeeDiffer() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(payer.getId()).thenReturn(1L);
+        when(payee.getId()).thenReturn(2L);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(outgoingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
+        when(incomingTransfer.getDate()).thenReturn(date);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
+        assertNotNull(transfer);
+        assertEquals(outgoingTransfer, transfer.getOutgoingTransfer());
+        assertEquals(incomingTransfer, transfer.getIncomingTransfer());
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
+    }
+
+    @Test
     void testGetId() {
         Transfer transfer = new Transfer();
         assertNull(transfer.getId());
@@ -339,11 +573,11 @@ class TransferTest {
         when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
         when(outgoingTransfer.getAccount()).thenReturn(payer);
         when(outgoingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
-        when(outgoingTransfer.getDate()).thenReturn(date.plusMinutes(1L));
+        when(outgoingTransfer.getDate()).thenReturn(date);
         when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
         when(incomingTransfer.getAccount()).thenReturn(payee);
         when(incomingTransfer.getAmount()).thenReturn(FORMATTED_TEN);
-        when(incomingTransfer.getDate()).thenReturn(date);
+        when(incomingTransfer.getDate()).thenReturn(date.plusMinutes(1L));
         Transfer transfer = new Transfer();
         transfer.setOutgoingTransfer(outgoingTransfer);
         Exception e = assertThrows(IllegalArgumentException.class,

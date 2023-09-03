@@ -24,9 +24,7 @@ public class TransferService {
         OffsetDateTime date = OffsetDateTime.now();
         Operation outgoingTransfer = operationService.createOutgoingTransfer(payerId, amount, date);
         Operation incomingTransfer = operationService.createIncomingTransfer(payeeId, amount, date);
-        Transfer transfer = new Transfer();
-        transfer.setOutgoingTransfer(outgoingTransfer);
-        transfer.setIncomingTransfer(incomingTransfer);
+        Transfer transfer = new Transfer(outgoingTransfer, incomingTransfer);
         repository.save(transfer);
     }
 }
