@@ -39,7 +39,8 @@ VALUES
     (1089, 10),
     (1090, 0),
     (1091, 10.01),
-    (1092, 0);
+    (1092, 0),
+    (1093, 0);
 
 INSERT INTO OPERATION (ID, ACCOUNT_ID, TYPE, AMOUNT, DATE)
 VALUES

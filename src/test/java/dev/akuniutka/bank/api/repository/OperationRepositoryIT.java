@@ -48,8 +48,6 @@ class OperationRepositoryIT {
                 assertEquals(OperationType.WITHDRAWAL, operation.getType());
                 assertEquals(FORMATTED_ONE, operation.getAmount());
             }
-            System.out.println(date);
-            System.out.println(operation.getDate());
             assertTrue(date.isEqual(operation.getDate()));
             date = date.plusMonths(1L);
         }
@@ -128,5 +126,26 @@ class OperationRepositoryIT {
             assertTrue(date.isEqual(operation.getDate()));
             date = date.plusMonths(1L);
         }
+    }
+
+    @Test
+    void testSave() {
+        Account testAccount = accounts.findById(1093L).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
+        OffsetDateTime date = OffsetDateTime.now().plusYears(100L);
+        Operation operation = new Operation();
+        operation.setAccount(testAccount);
+        operation.setType(OperationType.DEPOSIT);
+        operation.setAmount(TEN);
+        operation.setDate(date);
+        operation = repository.save(operation);
+        Long id = operation.getId();
+        assertNotNull(id);
+        Operation actual = repository.findById(id).orElseThrow(() -> new RuntimeException(OPERATIONS_NOT_FOUND));
+        assertNotNull(actual);
+        assertEquals(id, actual.getId());
+        assertEquals(testAccount.getId(), actual.getAccount().getId());
+        assertEquals(OperationType.DEPOSIT, actual.getType());
+        assertEquals(FORMATTED_TEN, actual.getAmount());
+        assertTrue(date.isEqual(actual.getDate()));
     }
 }
