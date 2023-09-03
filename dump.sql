@@ -26,7 +26,7 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.account (
     id bigint NOT NULL,
-    balance numeric DEFAULT 0 NOT NULL,
+    balance numeric(15,2) DEFAULT 0 NOT NULL,
     CONSTRAINT account_balance_check CHECK ((balance >= (0)::numeric))
 );
 
@@ -75,7 +75,7 @@ CREATE TABLE public.operation (
     id bigint NOT NULL,
     account_id bigint NOT NULL,
     type character varying(1) NOT NULL,
-    amount numeric NOT NULL,
+    amount numeric(15,2) NOT NULL,
     date timestamp without time zone NOT NULL,
     CONSTRAINT operation_amount_check CHECK ((amount > (0)::numeric))
 );
@@ -89,8 +89,8 @@ ALTER TABLE public.operation OWNER TO banker;
 
 CREATE TABLE public.transfer (
     id bigint NOT NULL,
-    debit_id bigint NOT NULL,
-    credit_id bigint NOT NULL
+    outgoing_transfer_id bigint NOT NULL,
+    incoming_transfer_id bigint NOT NULL
 );
 
 
@@ -101,9 +101,9 @@ ALTER TABLE public.transfer OWNER TO banker;
 --
 
 COPY public.account (id, balance) FROM stdin;
-1001	0
-1002	0
-1003	10
+1001	0.00
+1002	0.00
+1003	10.00
 \.
 
 
@@ -112,11 +112,12 @@ COPY public.account (id, balance) FROM stdin;
 --
 
 COPY public.flyway_schema_history (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) FROM stdin;
-1	1.0.0	create account entity	SQL	V1_0_0__create_account_entity.sql	-234539271	banker	2023-08-27 09:44:15.361115	9	t
-2	1.0.1	create test users	SQL	V1_0_1__create_test_users.sql	275772206	banker	2023-08-27 09:44:15.385114	5	t
-3	1.1.0	create operation entity	SQL	V1_1_0__create_operation_entity.sql	130108117	banker	2023-08-27 09:44:15.400084	8	t
-4	1.1.1	create test operaions history	SQL	V1_1_1__create_test_operaions_history.sql	1443040724	banker	2023-08-27 09:44:15.425826	3	t
-5	1.2.0	create transfer entity	SQL	V1_2_0__create_transfer_entity.sql	345588479	banker	2023-08-27 09:44:15.435736	7	t
+1	1.0.0	create account entity	SQL	V1_0_0__create_account_entity.sql	-234539271	banker	2023-09-03 20:18:50.952457	28	t
+2	1.0.1	create test users	SQL	V1_0_1__create_test_users.sql	275772206	banker	2023-09-03 20:18:51.003947	2	t
+3	1.1.0	create operation entity	SQL	V1_1_0__create_operation_entity.sql	130108117	banker	2023-09-03 20:18:51.012839	4	t
+4	1.1.1	create test operations history	SQL	V1_1_1__create_test_operations_history.sql	1443040724	banker	2023-09-03 20:18:51.033519	4	t
+5	1.2.0	create transfer entity	SQL	V1_2_0__create_transfer_entity.sql	941021906	banker	2023-09-03 20:18:51.043534	7	t
+6	1.2.1	change numeric scale	SQL	V1_2_1__change_numeric_scale.sql	2138348207	banker	2023-09-03 20:18:51.057786	12	t
 \.
 
 
@@ -125,18 +126,18 @@ COPY public.flyway_schema_history (installed_rank, version, description, type, s
 --
 
 COPY public.operation (id, account_id, type, amount, date) FROM stdin;
-1004	1003	D	10	2023-01-01 00:00:00
-1005	1003	D	10	2023-02-01 00:00:00
-1006	1003	W	1	2023-03-01 00:00:00
-1007	1003	W	1	2023-04-01 00:00:00
-1008	1003	W	1	2023-05-01 00:00:00
-1009	1003	W	1	2023-06-01 00:00:00
-1010	1003	W	1	2023-07-01 00:00:00
-1011	1003	W	1	2023-08-01 00:00:00
-1012	1003	W	1	2023-09-01 00:00:00
-1013	1003	W	1	2023-10-01 00:00:00
-1014	1003	W	1	2023-11-01 00:00:00
-1015	1003	W	1	2023-12-01 00:00:00
+1004	1003	D	10.00	2023-01-01 00:00:00
+1005	1003	D	10.00	2023-02-01 00:00:00
+1006	1003	W	1.00	2023-03-01 00:00:00
+1007	1003	W	1.00	2023-04-01 00:00:00
+1008	1003	W	1.00	2023-05-01 00:00:00
+1009	1003	W	1.00	2023-06-01 00:00:00
+1010	1003	W	1.00	2023-07-01 00:00:00
+1011	1003	W	1.00	2023-08-01 00:00:00
+1012	1003	W	1.00	2023-09-01 00:00:00
+1013	1003	W	1.00	2023-10-01 00:00:00
+1014	1003	W	1.00	2023-11-01 00:00:00
+1015	1003	W	1.00	2023-12-01 00:00:00
 \.
 
 
@@ -144,7 +145,7 @@ COPY public.operation (id, account_id, type, amount, date) FROM stdin;
 -- Data for Name: transfer; Type: TABLE DATA; Schema: public; Owner: banker
 --
 
-COPY public.transfer (id, debit_id, credit_id) FROM stdin;
+COPY public.transfer (id, outgoing_transfer_id, incoming_transfer_id) FROM stdin;
 \.
 
 
@@ -202,17 +203,17 @@ CREATE INDEX operation_account_id_idx ON public.operation USING btree (account_i
 
 
 --
--- Name: transfer_credit_id_idx; Type: INDEX; Schema: public; Owner: banker
+-- Name: transfer_incoming_transfer_id_idx; Type: INDEX; Schema: public; Owner: banker
 --
 
-CREATE INDEX transfer_credit_id_idx ON public.transfer USING btree (credit_id);
+CREATE INDEX transfer_incoming_transfer_id_idx ON public.transfer USING btree (incoming_transfer_id);
 
 
 --
--- Name: transfer_debit_id_idx; Type: INDEX; Schema: public; Owner: banker
+-- Name: transfer_outgoing_transfer_id_idx; Type: INDEX; Schema: public; Owner: banker
 --
 
-CREATE INDEX transfer_debit_id_idx ON public.transfer USING btree (debit_id);
+CREATE INDEX transfer_outgoing_transfer_id_idx ON public.transfer USING btree (outgoing_transfer_id);
 
 
 --
@@ -224,19 +225,19 @@ ALTER TABLE ONLY public.operation
 
 
 --
--- Name: transfer transfer_credit_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: banker
+-- Name: transfer transfer_incoming_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: banker
 --
 
 ALTER TABLE ONLY public.transfer
-    ADD CONSTRAINT transfer_credit_id_fkey FOREIGN KEY (credit_id) REFERENCES public.operation(id);
+    ADD CONSTRAINT transfer_incoming_transfer_id_fkey FOREIGN KEY (incoming_transfer_id) REFERENCES public.operation(id);
 
 
 --
--- Name: transfer transfer_debit_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: banker
+-- Name: transfer transfer_outgoing_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: banker
 --
 
 ALTER TABLE ONLY public.transfer
-    ADD CONSTRAINT transfer_debit_id_fkey FOREIGN KEY (debit_id) REFERENCES public.operation(id);
+    ADD CONSTRAINT transfer_outgoing_transfer_id_fkey FOREIGN KEY (outgoing_transfer_id) REFERENCES public.operation(id);
 
 
 --
