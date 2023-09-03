@@ -48,7 +48,7 @@ class ApiControllerIT {
         date = date.withOffsetSameInstant(offset);
         for (int i = 0; i < 12; i++) {
             Operation operation = new Operation();
-            if (i < 2) {
+            if (i == 0 || i == 11) {
                 operation.setType(OperationType.DEPOSIT);
                 operation.setAmount(TEN);
             } else {

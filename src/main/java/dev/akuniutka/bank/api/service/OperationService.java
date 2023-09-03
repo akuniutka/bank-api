@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -75,14 +76,17 @@ public class OperationService {
     @Transactional
     public List<Operation> getUserOperations(Long userId, OffsetDateTime dateFrom, OffsetDateTime dateTo) {
         Account account = accountService.getAccount(userId);
+        List<Operation> operations;
         if (dateFrom == null && dateTo == null) {
-            return repository.findByAccountOrderByDate(account);
+            operations = repository.findByAccount(account);
         } else if (dateFrom == null) {
-            return repository.findByAccountAndDateBeforeOrderByDate(account, dateTo);
+            operations = repository.findByAccountAndDateBefore(account, dateTo);
         } else if (dateTo == null) {
-            return repository.findByAccountAndDateAfterOrderByDate(account, dateFrom);
+            operations = repository.findByAccountAndDateAfter(account, dateFrom);
         } else {
-            return repository.findByAccountAndDateBetweenOrderByDate(account, dateFrom, dateTo);
+            operations = repository.findByAccountAndDateBetween(account, dateFrom, dateTo);
         }
+        operations.sort(Comparator.comparing(Operation::getDate));
+        return operations;
     }
 }

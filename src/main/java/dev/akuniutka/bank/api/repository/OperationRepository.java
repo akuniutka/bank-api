@@ -10,20 +10,20 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public interface OperationRepository extends CrudRepository<Operation, Long> {
-    List<Operation> findByAccountOrderByDate(Account account);
+    List<Operation> findByAccount(Account account);
 
-    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date < :finish ORDER BY o.date")
-    List<Operation> findByAccountAndDateBeforeOrderByDate(
+    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date < :finish")
+    List<Operation> findByAccountAndDateBefore(
             @Param("account") Account account, @Param("finish") OffsetDateTime finish
     );
 
-    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date >= :start ORDER BY o.date")
-    List<Operation> findByAccountAndDateAfterOrderByDate(
+    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date >= :start")
+    List<Operation> findByAccountAndDateAfter(
             @Param("account") Account account, @Param("start") OffsetDateTime start
     );
 
-    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date >= :start AND o.date < :finish ORDER BY o.date")
-    List<Operation> findByAccountAndDateBetweenOrderByDate(
+    @Query("SELECT o FROM Operation o WHERE o.account = :account AND o.date >= :start AND o.date < :finish")
+    List<Operation> findByAccountAndDateBetween(
             @Param("account") Account account, @Param("start") OffsetDateTime start, @Param("finish") OffsetDateTime finish
     );
 }

@@ -32,7 +32,7 @@ class OperationRepositoryIT {
     @Test
     void testFindByAccount() {
         OffsetDateTime date = OffsetDateTime.of(LocalDate.parse("2023-01-01"), LocalTime.MIDNIGHT, OFFSET);
-        List<Operation> operations = repository.findByAccountOrderByDate(account);
+        List<Operation> operations = repository.findByAccount(account);
         assertNotNull(operations);
         assertEquals(12, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));
@@ -58,7 +58,7 @@ class OperationRepositoryIT {
     @Test
     void testFindByAccountAndDateBefore() {
         OffsetDateTime date = OffsetDateTime.of(LocalDate.parse("2023-07-01"), LocalTime.MIDNIGHT, OFFSET);
-        List<Operation> operations = repository.findByAccountAndDateBeforeOrderByDate(account, date);
+        List<Operation> operations = repository.findByAccountAndDateBefore(account, date);
         date = date.withMonth(1);
         assertNotNull(operations);
         assertEquals(6, operations.size());
@@ -83,7 +83,7 @@ class OperationRepositoryIT {
     @Test
     void testFindByAccountAndDateAfter() {
         OffsetDateTime date = OffsetDateTime.of(LocalDate.parse("2023-02-01"), LocalTime.MIDNIGHT, OFFSET);
-        List<Operation> operations = repository.findByAccountAndDateAfterOrderByDate(account, date);
+        List<Operation> operations = repository.findByAccountAndDateAfter(account, date);
         assertNotNull(operations);
         assertEquals(11, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));
@@ -109,7 +109,7 @@ class OperationRepositoryIT {
         OffsetDateTime start = OffsetDateTime.of(LocalDate.parse("2023-02-01"), LocalTime.MIDNIGHT, OFFSET);
         OffsetDateTime finish = OffsetDateTime.of(LocalDate.parse("2023-04-01"), LocalTime.MIDNIGHT, OFFSET);
         OffsetDateTime date = start;
-        List<Operation> operations = repository.findByAccountAndDateBetweenOrderByDate(account, start, finish);
+        List<Operation> operations = repository.findByAccountAndDateBetween(account, start, finish);
         assertNotNull(operations);
         assertEquals(2, operations.size());
         operations.sort(Comparator.comparing(Operation::getId));
