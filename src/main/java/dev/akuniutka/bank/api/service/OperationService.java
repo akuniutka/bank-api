@@ -28,33 +28,21 @@ public class OperationService {
     @Transactional
     public void createDeposit(Long userId, BigDecimal amount) {
         Account account = accountService.increaseUserBalance(userId, amount);
-        Operation operation = new Operation();
-        operation.setAccount(account);
-        operation.setType(OperationType.DEPOSIT);
-        operation.setAmount(amount);
-        operation.setDate(OffsetDateTime.now());
+        Operation operation = new Operation(account, OperationType.DEPOSIT, amount, OffsetDateTime.now());
         repository.save(operation);
     }
 
     @Transactional
     public void createWithdrawal(Long userId, BigDecimal amount) {
         Account account = accountService.decreaseUserBalance(userId, amount);
-        Operation operation = new Operation();
-        operation.setAccount(account);
-        operation.setType(OperationType.WITHDRAWAL);
-        operation.setAmount(amount);
-        operation.setDate(OffsetDateTime.now());
+        Operation operation = new Operation(account, OperationType.WITHDRAWAL, amount, OffsetDateTime.now());
         repository.save(operation);
     }
 
     public Operation createIncomingTransfer(Long userId, BigDecimal amount, OffsetDateTime date) {
         try {
             Account account = accountService.increaseUserBalance(userId, amount);
-            Operation operation = new Operation();
-            operation.setAccount(account);
-            operation.setType(OperationType.INCOMING_TRANSFER);
-            operation.setAmount(amount);
-            operation.setDate(date);
+            Operation operation = new Operation(account, OperationType.INCOMING_TRANSFER, amount, date);
             return repository.save(operation);
         } catch (NullUserIdException e) {
             throw new NullUserIdException(ErrorMessage.RECEIVER_ID_IS_NULL);
@@ -65,11 +53,7 @@ public class OperationService {
 
     public Operation createOutgoingTransfer(Long userId, BigDecimal amount, OffsetDateTime date) {
         Account account = accountService.decreaseUserBalance(userId, amount);
-        Operation operation = new Operation();
-        operation.setAccount(account);
-        operation.setType(OperationType.OUTGOING_TRANSFER);
-        operation.setAmount(amount);
-        operation.setDate(date);
+        Operation operation = new Operation(account, OperationType.OUTGOING_TRANSFER, amount, date);
         return repository.save(operation);
     }
 

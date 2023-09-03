@@ -6,6 +6,7 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.service.AccountService;
@@ -206,15 +207,10 @@ class ApiControllerTest {
     }
 
     private List<Operation> generateTestOperationList() {
+        Account account = new Account();
         List<Operation> operations = new ArrayList<>();
-        operations.add(new Operation());
-        operations.get(0).setType(OperationType.DEPOSIT);
-        operations.get(0).setAmount(TEN);
-        operations.get(0).setDate(OffsetDateTime.now());
-        operations.add(new Operation());
-        operations.get(1).setType(OperationType.WITHDRAWAL);
-        operations.get(1).setAmount(ONE);
-        operations.get(1).setDate(OffsetDateTime.now().plusMonths(1L));
+        operations.add(new Operation(account, OperationType.DEPOSIT, TEN, OffsetDateTime.now()));
+        operations.add(new Operation(account, OperationType.WITHDRAWAL, ONE, OffsetDateTime.now().plusMonths(1L)));
         return operations;
     }
 

@@ -2,23 +2,28 @@ package dev.akuniutka.bank.api.dto;
 
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 
 class OperationDtoTest {
-    private static final Operation OPERATION = new Operation();
+    private Operation operation;
 
-    @BeforeAll
-    static void init() {
-        OPERATION.setType(OperationType.DEPOSIT);
-        OPERATION.setAmount(TEN);
-        OPERATION.setDate(OffsetDateTime.now());
+    @BeforeEach
+    public void setUp() {
+        operation = mock(Operation.class);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        verifyNoMoreInteractions(ignoreStubs(operation));
     }
 
     @Test
@@ -28,52 +33,57 @@ class OperationDtoTest {
     }
 
     @Test
-    void testOperationDtoWhenDateIsNull() {
-        Operation operation = new Operation();
-        operation.setType(OperationType.DEPOSIT);
-        operation.setAmount(TEN);
-        Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
-        assertEquals(DATE_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testOperationDtoWhenTypeIsNull() {
-        Operation operation = new Operation();
-        operation.setDate(OffsetDateTime.now());
-        operation.setAmount(TEN);
-        Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
-        assertEquals(OPERATION_TYPE_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testOperationDtoWhenAmountIsNull() {
-        Operation operation = new Operation();
-        operation.setDate(OffsetDateTime.now());
-        operation.setType(OperationType.DEPOSIT);
-        Exception e = assertThrows(IllegalArgumentException.class, () -> new OperationDto(operation));
-        assertEquals(AMOUNT_IS_NULL, e.getMessage());
-    }
-
-    @Test
-    void testOperationDtoWhenOperationNotNullAndDateNotNullAndTypeNotNullAndAmountNotNull() {
-        assertDoesNotThrow(() -> new OperationDto(OPERATION));
+    void testOperationDtoWhenOperationIsNotNull() {
+        OffsetDateTime date = OffsetDateTime.now();
+        when(operation.getType()).thenReturn(OperationType.DEPOSIT);
+        when(operation.getAmount()).thenReturn(FORMATTED_TEN);
+        when(operation.getDate()).thenReturn(date);
+        OperationDto dto = new OperationDto(operation);
+        assertNotNull(dto);
+        assertEquals(OperationType.DEPOSIT.getDescription(), dto.getType());
+        assertEquals(FORMATTED_TEN, dto.getAmount());
+        assertTrue(date.isEqual(dto.getDate()));
+        verify(operation).getType();
+        verify(operation).getAmount();
+        verify(operation).getDate();
     }
 
     @Test
     void testGetDate() {
-        OperationDto dto = new OperationDto(OPERATION);
-        assertEquals(OPERATION.getDate(), dto.getDate());
+        OffsetDateTime date = OffsetDateTime.now();
+        when(operation.getType()).thenReturn(OperationType.DEPOSIT);
+        when(operation.getAmount()).thenReturn(FORMATTED_TEN);
+        when(operation.getDate()).thenReturn(date);
+        OperationDto dto = new OperationDto(operation);
+        assertTrue(date.isEqual(dto.getDate()));
+        verify(operation).getType();
+        verify(operation).getAmount();
+        verify(operation).getDate();
     }
 
     @Test
     void testGetType() {
-        OperationDto dto = new OperationDto(OPERATION);
+        OffsetDateTime date = OffsetDateTime.now();
+        when(operation.getType()).thenReturn(OperationType.DEPOSIT);
+        when(operation.getAmount()).thenReturn(FORMATTED_TEN);
+        when(operation.getDate()).thenReturn(date);
+        OperationDto dto = new OperationDto(operation);
         assertEquals(OperationType.DEPOSIT.getDescription(), dto.getType());
+        verify(operation).getType();
+        verify(operation).getAmount();
+        verify(operation).getDate();
     }
 
     @Test
     void testGetAmount() {
-        OperationDto dto = new OperationDto(OPERATION);
+        OffsetDateTime date = OffsetDateTime.now();
+        when(operation.getType()).thenReturn(OperationType.DEPOSIT);
+        when(operation.getAmount()).thenReturn(FORMATTED_TEN);
+        when(operation.getDate()).thenReturn(date);
+        OperationDto dto = new OperationDto(operation);
         assertEquals(FORMATTED_TEN, dto.getAmount());
+        verify(operation).getType();
+        verify(operation).getAmount();
+        verify(operation).getDate();
     }
 }

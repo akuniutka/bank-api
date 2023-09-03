@@ -6,6 +6,7 @@ import dev.akuniutka.bank.api.dto.CashOrderDto;
 import dev.akuniutka.bank.api.dto.OperationDto;
 import dev.akuniutka.bank.api.dto.PaymentOrderDto;
 import dev.akuniutka.bank.api.dto.ResponseDto;
+import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
 import dev.akuniutka.bank.api.entity.OperationType;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,16 +47,14 @@ class ApiControllerIT {
         OffsetDateTime date = OffsetDateTime.of(LocalDate.parse("2023-01-01"), LocalTime.MIDNIGHT, OFFSET);
         ZoneOffset offset = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
         date = date.withOffsetSameInstant(offset);
+        Account account = new Account();
         for (int i = 0; i < 12; i++) {
-            Operation operation = new Operation();
+            Operation operation;
             if (i == 0 || i == 11) {
-                operation.setType(OperationType.DEPOSIT);
-                operation.setAmount(TEN);
+                operation = new Operation(account, OperationType.DEPOSIT, TEN, date);
             } else {
-                operation.setType(OperationType.WITHDRAWAL);
-                operation.setAmount(ONE);
+                operation = new Operation(account, OperationType.WITHDRAWAL, ONE, date);
             }
-            operation.setDate(date);
             date = date.plusMonths(1L);
             DTO_LIST.add(new OperationDto(operation));
         }

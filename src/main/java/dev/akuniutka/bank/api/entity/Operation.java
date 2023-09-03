@@ -15,20 +15,33 @@ public class Operation {
     private Long id;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ACCOUNT_ID", nullable = false)
+    @Access(AccessType.PROPERTY)
     private Account account;
     @Column(nullable = false)
+    @Access(AccessType.PROPERTY)
     private OperationType type;
     @Column(nullable = false)
     @Access(AccessType.PROPERTY)
     private BigDecimal amount;
     @Column(nullable = false)
+    @Access(AccessType.PROPERTY)
     private OffsetDateTime date;
+
+    protected Operation() {}
+
+    public Operation(Account account, OperationType type, BigDecimal amount, OffsetDateTime date) {
+        id = null;
+        setAccount(account);
+        setType(type);
+        setAmount(amount);
+        setDate(date);
+    }
 
     public Long getId() {
         return id;
     }
 
-    public void setAccount(Account account) {
+    protected void setAccount(Account account) {
         if (account == null) {
             throw new IllegalArgumentException(ErrorMessage.ACCOUNT_IS_NULL);
         }
@@ -39,7 +52,7 @@ public class Operation {
         return account;
     }
 
-    public void setType(OperationType type) {
+    protected void setType(OperationType type) {
         if (type == null) {
             throw new IllegalArgumentException(ErrorMessage.OPERATION_TYPE_IS_NULL);
         }
@@ -50,7 +63,7 @@ public class Operation {
         return type;
     }
 
-    public void setAmount(BigDecimal amount) {
+    protected void setAmount(BigDecimal amount) {
         AmountValidator.assertAmount(amount);
         this.amount = amount.setScale(2, RoundingMode.HALF_UP);
     }
@@ -59,7 +72,7 @@ public class Operation {
         return amount;
     }
 
-    public void setDate(OffsetDateTime date) {
+    protected void setDate(OffsetDateTime date) {
         if (date == null) {
             throw new IllegalArgumentException(ErrorMessage.DATE_IS_NULL);
         }

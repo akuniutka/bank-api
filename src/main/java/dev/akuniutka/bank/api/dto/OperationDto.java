@@ -1,11 +1,10 @@
 package dev.akuniutka.bank.api.dto;
 
 import dev.akuniutka.bank.api.entity.Operation;
+import dev.akuniutka.bank.api.util.ErrorMessage;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-
-import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 
 public class OperationDto {
     private final OffsetDateTime date;
@@ -14,13 +13,7 @@ public class OperationDto {
 
     public OperationDto(Operation operation) {
         if (operation == null) {
-            throw new IllegalArgumentException(OPERATION_IS_NULL);
-        } else if (operation.getDate() == null) {
-            throw new IllegalArgumentException(DATE_IS_NULL);
-        } else if (operation.getType() == null) {
-            throw new IllegalArgumentException(OPERATION_TYPE_IS_NULL);
-        } else if (operation.getAmount() == null) {
-            throw new IllegalArgumentException(AMOUNT_IS_NULL);
+            throw new IllegalArgumentException(ErrorMessage.OPERATION_IS_NULL);
         }
         date = operation.getDate();
         type = operation.getType().getDescription();

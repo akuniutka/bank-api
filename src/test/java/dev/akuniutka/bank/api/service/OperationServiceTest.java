@@ -43,10 +43,8 @@ class OperationServiceTest {
         operation = mock(Operation.class);
         storedOperation = null;
         presetOperations = new ArrayList<>();
-        presetOperations.add(new Operation());
-        presetOperations.add(new Operation());
-        presetOperations.get(0).setDate(OffsetDateTime.now());
-        presetOperations.get(1).setDate(OffsetDateTime.now().minusDays(1L));
+        presetOperations.add(new Operation(account, OperationType.DEPOSIT, TEN, OffsetDateTime.now()));
+        presetOperations.add(new Operation(account, OperationType.WITHDRAWAL, ONE, OffsetDateTime.now().minusDays(1L)));
         operations = spy(new ArrayList<>(presetOperations));
         accountService = mock(AccountService.class);
         repository = mock(OperationRepository.class);

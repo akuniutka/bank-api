@@ -132,11 +132,7 @@ class OperationRepositoryIT {
     void testSave() {
         Account testAccount = accounts.findById(1093L).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
         OffsetDateTime date = OffsetDateTime.now().plusYears(100L);
-        Operation operation = new Operation();
-        operation.setAccount(testAccount);
-        operation.setType(OperationType.DEPOSIT);
-        operation.setAmount(TEN);
-        operation.setDate(date);
+        Operation operation = new Operation(testAccount, OperationType.DEPOSIT, TEN, date);
         operation = repository.save(operation);
         Long id = operation.getId();
         assertNotNull(id);
