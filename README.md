@@ -210,3 +210,7 @@ the project directory):
 
 ![Database structure](db_structure.png)
 
+## Running instance
+
+You may test an instance of the application at 
+[akunutko.fvds.ru:8080](http://akunutko.fvds.ru:8080)
