@@ -1,7 +1,10 @@
 package dev.akuniutka.bank.api.service;
 
+import dev.akuniutka.bank.api.entity.Account;
 import dev.akuniutka.bank.api.entity.Operation;
+import dev.akuniutka.bank.api.entity.OperationType;
 import dev.akuniutka.bank.api.entity.Transfer;
+import dev.akuniutka.bank.api.exception.BadRequestException;
 import dev.akuniutka.bank.api.exception.WrongAmountException;
 import dev.akuniutka.bank.api.exception.NullUserIdException;
 import dev.akuniutka.bank.api.exception.UserNotFoundException;
@@ -177,8 +180,16 @@ class TransferServiceTest {
     }
 
     @Test
-    void testCreateTransferWhenBalanceIsSufficient() {
+    void testCreateTransferWhenPayerAndPayeeAreTheSame() {
         BigDecimal amount = TEN;
+        Account payer = mock(Account.class);
+        Account payee = mock(Account.class);
+        when(payer.getId()).thenReturn(USER_ID);
+        when(payee.getId()).thenReturn(USER_ID);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class)))
                 .thenAnswer(
                         a -> {
@@ -186,10 +197,53 @@ class TransferServiceTest {
                             return outgoingTransfer;
                         }
                 );
+        when(operationService.createIncomingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class)))
+                .thenAnswer(
+                        a -> {
+                            assertEquals(transferDate, a.getArguments()[2]);
+                            return incomingTransfer;
+                        }
+                );
+        Exception e = assertThrows(BadRequestException.class, () -> service.createTransfer(USER_ID, USER_ID, amount));
+        assertEquals(WRONG_OPERATION_ACCOUNT, e.getMessage());
+        verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class));
+        verify(operationService).createIncomingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class));
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verifyNoMoreInteractions(ignoreStubs(payer));
+        verifyNoMoreInteractions(ignoreStubs(payee));
+    }
+
+    @Test
+    void testCreateTransferWhenBalanceIsSufficient() {
+        BigDecimal amount = TEN;
+        Account payer = mock(Account.class);
+        Account payee = mock(Account.class);
+        when(payer.getId()).thenReturn(USER_ID);
+        when(payee.getId()).thenReturn(RECEIVER_ID);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(amount);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(amount);
+        when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class)))
+                .thenAnswer(
+                        a -> {
+                            storeTransferDate(a.getArguments()[2]);
+                            when(outgoingTransfer.getDate()).thenReturn(transferDate);
+                            return outgoingTransfer;
+                        }
+                );
         when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(OffsetDateTime.class)))
                 .thenAnswer(
                         a -> {
                             assertEquals(transferDate, a.getArguments()[2]);
+                            when(incomingTransfer.getDate()).thenReturn(transferDate);
                             return incomingTransfer;
                         }
                 );
@@ -200,21 +254,45 @@ class TransferServiceTest {
         assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());
         verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class));
         verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(OffsetDateTime.class));
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
         verify(repository).save(any(Transfer.class));
+        verifyNoMoreInteractions(ignoreStubs(payer));
+        verifyNoMoreInteractions(ignoreStubs(payee));
     }
 
     @Test
     void testCreateTransferWhenScaleIsGreaterThatTwoButWithZeros() {
         BigDecimal amount = TEN_THOUSANDTHS;
+        Account payer = mock(Account.class);
+        Account payee = mock(Account.class);
+        when(payer.getId()).thenReturn(USER_ID);
+        when(payee.getId()).thenReturn(RECEIVER_ID);
+        when(outgoingTransfer.getType()).thenReturn(OperationType.OUTGOING_TRANSFER);
+        when(outgoingTransfer.getAccount()).thenReturn(payer);
+        when(outgoingTransfer.getAmount()).thenReturn(amount);
+        when(incomingTransfer.getType()).thenReturn(OperationType.INCOMING_TRANSFER);
+        when(incomingTransfer.getAccount()).thenReturn(payee);
+        when(incomingTransfer.getAmount()).thenReturn(amount);
         when(operationService.createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class)))
                 .thenAnswer(a -> {
                             storeTransferDate(a.getArguments()[2]);
+                            when(outgoingTransfer.getDate()).thenReturn(transferDate);
                             return outgoingTransfer;
                         }
                 );
         when(operationService.createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(OffsetDateTime.class)))
                 .thenAnswer(a -> {
                             assertEquals(transferDate, a.getArguments()[2]);
+                            when(incomingTransfer.getDate()).thenReturn(transferDate);
                             return incomingTransfer;
                         }
                 );
@@ -225,7 +303,19 @@ class TransferServiceTest {
         assertEquals(incomingTransfer, storedTransfer.getIncomingTransfer());
         verify(operationService).createOutgoingTransfer(eq(USER_ID), eq(amount), any(OffsetDateTime.class));
         verify(operationService).createIncomingTransfer(eq(RECEIVER_ID), eq(amount), any(OffsetDateTime.class));
+        verify(outgoingTransfer).getType();
+        verify(incomingTransfer).getType();
+        verify(outgoingTransfer).getAccount();
+        verify(incomingTransfer).getAccount();
+        verify(payer).getId();
+        verify(payee).getId();
+        verify(outgoingTransfer).getAmount();
+        verify(incomingTransfer).getAmount();
+        verify(outgoingTransfer).getDate();
+        verify(incomingTransfer).getDate();
         verify(repository).save(any(Transfer.class));
+        verifyNoMoreInteractions(ignoreStubs(payer));
+        verifyNoMoreInteractions(ignoreStubs(payee));
     }
 
     private void storeTransferDate(Object o) {

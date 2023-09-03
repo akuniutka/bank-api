@@ -18,4 +18,8 @@ public class ErrorMessage {
     public static final String TRANSFER_CREDIT_IS_NULL = "transfer credit is null";
     public static final String RECEIVER_ID_IS_NULL = "receiver id is null";
     public static final String RECEIVER_NOT_FOUND = "receiver not found";
+    public static final String WRONG_OPERATION_TYPE = "wrong operation type";
+    public static final String WRONG_OPERATION_ACCOUNT = "payer and payee are the same";
+    public static final String WRONG_OPERATION_AMOUNT = "transfer legs amounts differ";
+    public static final String WRONG_OPERATION_DATE = "transfer legs dates differ";
 }
