@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
 
+import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -18,7 +19,7 @@ class TransferRepositoryIT {
     private TransferRepository repository;
 
     @Test
-    void findByOutgoingTransfer() {
+    void testFindByOutgoingTransfer() {
         Operation outgoingTransfer = operations.findById(26L).orElseThrow(
                 () -> new RuntimeException("operation does not exist")
         );
@@ -31,7 +32,7 @@ class TransferRepositoryIT {
     }
 
     @Test
-    void findByIncomingTransfer() {
+    void testFindByIncomingTransfer() {
         Operation incomingTransfer = operations.findById(29L).orElseThrow(
                 () -> new RuntimeException("operation does not exist")
         );
@@ -41,5 +42,25 @@ class TransferRepositoryIT {
         Transfer transfer = transfers.get(0);
         assertNotNull(transfer);
         assertEquals(502L, transfer.getId());
+    }
+
+    @Test
+    void testSave() {
+        Operation outgoingTransfer = operations.findById(30L).orElseThrow(
+                () -> new RuntimeException(OPERATIONS_NOT_FOUND)
+        );
+        Operation incomingTransfer = operations.findById(31L).orElseThrow(
+                () -> new RuntimeException(OPERATIONS_NOT_FOUND)
+        );
+        Transfer transfer = new Transfer();
+        transfer.setOutgoingTransfer(outgoingTransfer);
+        transfer.setIncomingTransfer(incomingTransfer);
+        transfer = repository.save(transfer);
+        Long id = transfer.getId();
+        Transfer actual = repository.findById(id).orElseThrow(() -> new RuntimeException("transfer not found"));
+        assertNotNull(actual);
+        assertEquals(id, actual.getId());
+        assertEquals(outgoingTransfer.getId(), actual.getOutgoingTransfer().getId());
+        assertEquals(incomingTransfer.getId(), actual.getIncomingTransfer().getId());
     }
 }

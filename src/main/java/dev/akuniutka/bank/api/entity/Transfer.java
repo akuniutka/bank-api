@@ -9,10 +9,10 @@ public class Transfer {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "OUTGOING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
     private Operation outgoingTransfer;
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "INCOMING_TRANSFER_ID", referencedColumnName = "id", nullable = false)
     private Operation incomingTransfer;
 
