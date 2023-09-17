@@ -16,119 +16,119 @@ via REST API.
 If a user with such `userId` exists, returns `200 OK` and its current balance 
 in a field `result` of the following JSON structure:
 ```json
-    {
-        "result": 0.00,
-        "message": ""
-    }
+{
+  "result": 0.00,
+  "message": ""
+}
 ```
 If there is no user with such `userId`, returns `404 Not Found` and the following 
 JSON:
 ```json
-    {
-        "result": -1,
-        "message": "user not found"
-    }
+{
+  "result": -1,
+  "message": "user not found"
+}
 ```
 
 ### /putMoney
 
 Receives an instruction in the following JSON structure:
 ```json
-    {
-        "userId": 1001,
-        "amount": 500
-    }
+{
+  "userId": 1001,
+  "amount": 500
+}
 ```
 and returns `200 OK` and the following JSON, if an operation was 
 successful:
 ```json
-    {
-        "result": 1,
-        "message": ""
-    }
+{
+  "result": 1,
+  "message": ""
+}
 ```
 In case of a user with such `userId` does 
 not exist, returns `404 Not Found` and the following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "user not found"
-    }
+{
+  "result": 0,
+  "message": "user not found"
+}
 ```
 If there was an error in the request, returns `400 Bad Request` and the 
 following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "user id is null"
-    }
+{
+  "result": 0,
+  "message": "user id is null"
+}
 ```
 
 ### /takeMoney
 
 Similar to `/putMoney` receives an instruction in the following JSON structure:
 ```json
-    {
-        "userId": 1001,
-        "amount": 100
-    }
+{
+  "userId": 1001,
+  "amount": 100
+}
 ```
 and returns `200 OK` and the following JSON in case of success:
 ```json
-    {
-        "result": 1,
-        "message": ""
-    }
+{
+  "result": 1,
+  "message": ""
+}
 ```
 If a user with such `userId` does not exist, returns `404 Not Found` 
 and the following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "user not found"
-    }
+{
+  "result": 0,
+  "message": "user not found"
+}
 ```
 In case of an erroneous request, returns `400 Bad Request` and the
 following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "user id is null"
-    }
+{
+  "result": 0,
+  "message": "user id is null"
+}
 ```
 
 ### /transferMoney
 
 Receives an instruction in the following JSON structure:
 ```json
-    {
-        "userId": 1001,
-        "receiverId": 1002,
-        "amount": 200
-    }
+{
+  "userId": 1001,
+  "receiverId": 1002,
+  "amount": 200
+}
 ```
 and returns `200 OK` and the following JSON if transfer was successful:
 ```json
-    {
-        "result": 1,
-        "message": ""
-    }
+{
+  "result": 1,
+  "message": ""
+}
 ```
 If a user with either `userId` or `receiverId` does not exist, 
 returns `404 Not Found` and the following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "receiver not found"
-    }
+{
+  "result": 0,
+  "message": "receiver not found"
+}
 ```
 If there is another error in the request, returns `400 Bad Request` 
 and the following JSON:
 ```json
-    {
-        "result": 0,
-        "message": "insufficient balance"
-    }
+{
+  "result": 0,
+  "message": "insufficient balance"
+}
 ```
 
 ### /getOperationList/{userId}
@@ -136,30 +136,34 @@ and the following JSON:
 If a user with such `userId` exists, returns `200 OK` and a history 
 of user operations in the following JSON structure:
 ```json
-    [
-        {
-            "date": "1970-01-01T08:00:00.000+00:00",
-            "type": "deposit",
-            "amount": 1000.00
-        },
-        ...
-    ]
+[
+  {
+    "date": "1970-01-01T08:00:00.000+00:00",
+    "type": "deposit",
+    "amount": 1000.00
+  },
+  {
+    "date": "1970-02-02T08:00:00.000+00:00",
+    "type": "withdrawal",
+    "amount": 700.00
+  }
+]
 ```
 If there is no user with such `userId`, returns `404 Not Found` and the following
 JSON:
 ```json
-    {
-        "result": 0,
-        "message": "user not found"
-    }
+{
+  "result": 0,
+  "message": "user not found"
+}
 ```
 if there are no operations for the user with such `userId`, returns `404 Not Found` 
 with a similar JSON:
 ```json
-    {
-        "result": 0,
-        "message": "operations not found"
-    }
+{
+  "result": 0,
+  "message": "operations not found"
+}
 ```
 User's operation history may be filtered with request parameters `dateFrom` 
 and `dateTo` of `yyyy-MM-dd` format:
