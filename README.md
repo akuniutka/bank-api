@@ -15,7 +15,7 @@ via REST API.
 
 If a user with such `userId` exists, returns `200 OK` and its current balance 
 in a field `result` of the following JSON structure:
-```    
+```json
     {
         "result": 0.00,
         "message": ""
@@ -23,7 +23,7 @@ in a field `result` of the following JSON structure:
 ```
 If there is no user with such `userId`, returns `404 Not Found` and the following 
 JSON:
-```
+```json
     {
         "result": -1,
         "message": "user not found"
@@ -33,7 +33,7 @@ JSON:
 ### /putMoney
 
 Receives an instruction in the following JSON structure:
-```
+```json
     {
         "userId": 1001,
         "amount": 500
@@ -41,25 +41,25 @@ Receives an instruction in the following JSON structure:
 ```
 and returns `200 OK` and the following JSON, if an operation was 
 successful:
-```
+```json
     {
-        "result": 1
+        "result": 1,
         "message": ""
     }
 ```
 In case of a user with such `userId` does 
 not exist, returns `404 Not Found` and the following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "user not found"
     }
 ```
 If there was an error in the request, returns `400 Bad Request` and the 
 following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "user id is null"
     }
 ```
@@ -67,32 +67,32 @@ following JSON:
 ### /takeMoney
 
 Similar to `/putMoney` receives an instruction in the following JSON structure:
-```
+```json
     {
         "userId": 1001,
         "amount": 100
     }
 ```
 and returns `200 OK` and the following JSON in case of success:
-```
+```json
     {
-        "result": 1
+        "result": 1,
         "message": ""
     }
 ```
 If a user with such `userId` does not exist, returns `404 Not Found` 
 and the following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "user not found"
     }
 ```
 In case of an erroneous request, returns `400 Bad Request` and the
 following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "user id is null"
     }
 ```
@@ -100,7 +100,7 @@ following JSON:
 ### /transferMoney
 
 Receives an instruction in the following JSON structure:
-```
+```json
     {
         "userId": 1001,
         "receiverId": 1002,
@@ -108,25 +108,25 @@ Receives an instruction in the following JSON structure:
     }
 ```
 and returns `200 OK` and the following JSON if transfer was successful:
-```
+```json
     {
-        "result": 1
+        "result": 1,
         "message": ""
     }
 ```
 If a user with either `userId` or `receiverId` does not exist, 
 returns `404 Not Found` and the following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "receiver not found"
     }
 ```
 If there is another error in the request, returns `400 Bad Request` 
 and the following JSON:
-```
+```json
     {
-        "result": 0
+        "result": 0,
         "message": "insufficient balance"
     }
 ```
@@ -135,7 +135,7 @@ and the following JSON:
 
 If a user with such `userId` exists, returns `200 OK` and a history 
 of user operations in the following JSON structure:
-```    
+```json
     [
         {
             "date": "1970-01-01T08:00:00.000+00:00",
@@ -147,7 +147,7 @@ of user operations in the following JSON structure:
 ```
 If there is no user with such `userId`, returns `404 Not Found` and the following
 JSON:
-```
+```json
     {
         "result": 0,
         "message": "user not found"
@@ -155,7 +155,7 @@ JSON:
 ```
 if there are no operations for the user with such `userId`, returns `404 Not Found` 
 with a similar JSON:
-```
+```json
     {
         "result": 0,
         "message": "operations not found"
