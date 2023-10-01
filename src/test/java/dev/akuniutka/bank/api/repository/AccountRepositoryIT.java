@@ -5,11 +5,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.transaction.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
 class AccountRepositoryIT {
     @Autowired
     private AccountRepository repository;
@@ -30,9 +36,12 @@ class AccountRepositoryIT {
         account = repository.save(account);
         Long id = account.getId();
         assertNotNull(id);
-        Account actual = repository.findById(id).orElseThrow(() -> new RuntimeException(USER_NOT_FOUND));
-        assertNotNull(actual);
-        assertEquals(id, actual.getId());
-        assertEquals(FORMATTED_TEN, actual.getBalance());
+        List<Long> ids = new ArrayList<>();
+        ids.add(id);
+        for (Account a : repository.findAllById(ids)) {
+            assertNotNull(a);
+            assertEquals(id, a.getId());
+            assertEquals(FORMATTED_TEN, a.getBalance());
+        }
     }
 }

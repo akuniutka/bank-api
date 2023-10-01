@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.transaction.Transactional;
 import java.time.*;
 import java.util.*;
 
@@ -16,6 +17,7 @@ import static dev.akuniutka.bank.api.util.ErrorMessage.*;
 import static dev.akuniutka.bank.api.util.Amount.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Transactional
 class OperationRepositoryIT {
     private static final ZoneOffset OFFSET = ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now());
     private Account account;
